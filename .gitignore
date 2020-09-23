@@ -1,0 +1,5 @@
+# Files
+*.blk
+
+# Folders
+__pycache__/

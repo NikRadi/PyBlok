@@ -1,0 +1,146 @@
+from enum import Enum
+from token import TokenKind
+from astnodes import (
+    BlkProgram,
+    ReturnStatement,
+    FuncCall,
+    FuncDecl,
+    Block,
+    ForLoop,
+    WhileLoop,
+    IfStatement,
+    VarAssign,
+    VarDecl,
+    Literal,
+    UnaryOp,
+    BinaryOp
+)
+
+
+class TypeChecker:
+    def __init__(self, ast):
+        self.funcident_to_evalkind = {}
+        self.current_func = None
+        self.typecheck_blkprogram(ast)
+
+    def typecheck_blkprogram(self, blkprogram):
+        for funcdecl in blkprogram.funcdecls:
+            ident = funcdecl.ident.value
+            if funcdecl.return_token.kind == TokenKind.VOID:
+                self.funcident_to_evalkind[ident] = EvalKind.VOID
+            elif funcdecl.return_token.kind == TokenKind.INT:
+                self.funcident_to_evalkind[ident] = EvalKind.INT
+            else: assert False
+
+        for funcdecl in blkprogram.funcdecls:
+            self.typecheck_funcdecl(funcdecl)
+
+    def typecheck_return_statement(self, return_statement):
+        if return_statement.expr != None:
+            self.typecheck_expr(return_statement.expr)
+
+    def typecheck_funccall(self, funccall):
+        ident = funccall.ident.value
+        funccall.eval_kind = self.funcident_to_evalkind[ident]
+
+    def typecheck_funcdecl(self, funcdecl):
+        self.current_func = funcdecl
+        funcdecl.stack_size = len(funcdecl.params)
+
+        self.typecheck_block(funcdecl.block)
+
+    def typecheck_block(self, block):
+        for statement in block.statements:
+            if isinstance(statement, VarDecl):
+                self.typecheck_vardecl(statement)
+            elif isinstance(statement, VarAssign):
+                self.typecheck_varassign(statement)
+            elif isinstance(statement, IfStatement):
+                self.typecheck_if_statement(statement)
+            elif isinstance(statement, WhileLoop):
+                self.typecheck_while_loop(statement)
+            elif isinstance(statement, ForLoop):
+                self.typecheck_for_loop(statement)
+            elif isinstance(statement, FuncCall):
+                self.typecheck_funccall(statement)
+            elif isinstance(statement, ReturnStatement):
+                self.typecheck_return_statement(statement)
+
+    def typecheck_for_loop(self, for_loop):
+        self.current_func.stack_size += 1
+        self.typecheck_expr(for_loop.start)
+        self.typecheck_expr(for_loop.stop)
+        self.typecheck_expr(for_loop.step)
+        self.typecheck_block(for_loop.block)
+
+    def typecheck_while_loop(self, while_loop):
+        self.typecheck_expr(while_loop.condition)
+        self.typecheck_block(while_loop.block)
+
+    def typecheck_if_statement(self, if_statement):
+        self.typecheck_block(if_statement.block)
+        self.typecheck_expr(if_statement.condition)
+        if isinstance(if_statement.else_block, IfStatement):
+            self.typecheck_if_statement(if_statement.else_block)
+        elif isinstance(if_statement.else_block, Block):
+            self.typecheck_block(if_statement.else_block)
+
+    def typecheck_varassign(self, varassign):
+        self.typecheck_expr(varassign.expr)
+
+    def typecheck_vardecl(self, vardecl):
+        self.current_func.stack_size += 1
+        self.typecheck_expr(vardecl.expr)
+
+    def typecheck_expr(self, expr):
+        if isinstance(expr, Literal):
+            self.typecheck_literal(expr)
+        elif isinstance(expr, UnaryOp):
+            self.typecheck_unaryop(expr)
+        elif isinstance(expr, BinaryOp):
+            self.typecheck_binaryop(expr)
+        elif isinstance(expr, FuncCall):
+            self.typecheck_funccall(expr)
+        else: assert False
+
+    def typecheck_literal(self, literal):
+        if literal.token.kind == TokenKind.INT_LITERAL:
+            literal.eval_kind = EvalKind.INT
+        elif literal.token.kind == TokenKind.IDENT:
+            pass
+        else: assert False, f"\n{literal}"
+
+    def typecheck_unaryop(self, unaryop):
+        self.typecheck_expr(unaryop.expr)
+        op_kind = unaryop.op.kind
+        if op_kind == TokenKind.PLUS or \
+           op_kind == TokenKind.MINUS:
+            unaryop.eval_kind = EvalKind.INT
+        else: assert False, f"\n{unaryop}"
+
+    def typecheck_binaryop(self, binaryop):
+        self.typecheck_expr(binaryop.lhs)
+        self.typecheck_expr(binaryop.rhs)
+        op_kind = binaryop.op.kind
+        if op_kind == TokenKind.PLUS or \
+           op_kind == TokenKind.MINUS or \
+           op_kind == TokenKind.STAR:
+            binaryop.eval_kind = EvalKind.INT
+        elif op_kind == TokenKind.TWO_EQUAL or \
+             op_kind == TokenKind.EXMARK_EQUAL or \
+             op_kind == TokenKind.LESS_THAN or \
+             op_kind == TokenKind.LESS_THAN_EQUAL or \
+             op_kind == TokenKind.GREATER_THAN or \
+             op_kind == TokenKind.GREATER_THAN_EQUAL:
+            binaryop.eval_kind = EvalKind.BOOL
+        else: assert False, f"\n{binaryop}"
+
+
+class EvalKind(Enum):
+    INT     = 0
+    BOOL    = 1
+    VOID    = 2
+
+
+    def __str__(self):
+        return self.name
