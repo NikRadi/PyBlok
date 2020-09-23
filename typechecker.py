@@ -42,6 +42,8 @@ class TypeChecker:
     def typecheck_funccall(self, funccall):
         ident = funccall.ident.value
         funccall.eval_kind = self.funcident_to_evalkind[ident]
+        for arg in funccall.args:
+            self.typecheck_expr(arg)
 
     def typecheck_funcdecl(self, funcdecl):
         self.current_func = funcdecl
