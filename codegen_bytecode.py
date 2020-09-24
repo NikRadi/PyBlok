@@ -56,10 +56,16 @@ class CodeGenByteCode:
         self.localvar_idx = 0
         self.bytecode = []
         self.localvar_to_idx = {}
-        self.funcident_to_idx = {}
+        self.funcident_to_label = {}
         self.label_to_idx = {}
 
     def replace_labels_by_idx(self):
+        for i in range(len(self.bytecode)):
+            code = self.bytecode[i]
+            if code[0] == ByteCode.CALL_PROCEDURE:
+                func_label = self.funcident_to_label[code[1]]
+                self.bytecode[i] = (code[0], func_label, code[2])
+
         i = 0
         while True:
             if i == len(self.bytecode):
@@ -74,24 +80,10 @@ class CodeGenByteCode:
 
         for i in range(len(self.bytecode)):
             code = self.bytecode[i]
-            if code[0] == ByteCode.CALL_PROCEDURE:
-                continue
-
             if len(code) == 2 and isinstance(code[1], str):
                 self.bytecode[i] = (code[0], self.label_to_idx[code[1]])
-
-    def replace_funcident_by_idx(self):
-        i = 0
-        while True:
-            if i == len(self.bytecode):
-                break
-
-            code = self.bytecode[i]
-            if code[0] == ByteCode.CALL_PROCEDURE:
-                idx = self.funcident_to_idx[code[1]]
-                self.bytecode[i] = (code[0], idx, code[2])
-
-            i += 1
+            elif len(code) == 3 and isinstance(code[1], str):
+                self.bytecode[i] = (code[0], self.label_to_idx[code[1]], code[2])
 
     def add_var(self, ident):
         idx = self.localvar_idx
@@ -111,10 +103,9 @@ class CodeGenByteCode:
         ]
 
         self.gen_bytecode_blkfile()
+        self.replace_labels_by_idx()
         for i, j in enumerate(self.bytecode): print(i, j)
         print()
-        self.replace_labels_by_idx()
-        self.replace_funcident_by_idx()
         return self.bytecode
 
     def gen_bytecode_blkfile(self):
@@ -138,8 +129,13 @@ class CodeGenByteCode:
     def gen_bytecode_funcdecl(self, funcdecl):
         self.localvar_idx = 0
         self.localvar_to_idx = {}
-        self.funcident_to_idx[funcdecl.ident.value] = len(self.bytecode)
-        self.bytecode += [(ByteCode.INCR_STACK_BY_CONST, funcdecl.stack_size)]
+        start_label = self.get_new_label()
+        self.funcident_to_label[funcdecl.ident.value] = start_label
+        self.bytecode += [
+            (ByteCode.LABEL, start_label),
+            (ByteCode.INCR_STACK_BY_CONST, funcdecl.stack_size)
+        ]
+
         for param in funcdecl.params:
             self.add_var(param.ident.value)
 
