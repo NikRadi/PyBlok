@@ -100,6 +100,8 @@ def parse_block(lexer):
             elif lexer.peek_token(1).kind == TokenKind.EQUAL:
                 block.statements.append(parse_varassign(lexer))
             else: assert False, f"\n{peek}"
+        elif peek.kind == TokenKind.LESS_THAN:
+            block.statements.append(parse_varassign(lexer))
         elif peek.kind == TokenKind.INT or \
              peek.kind == TokenKind.INT_PTR:
             block.statements.append(parse_vardecl(lexer))
@@ -158,12 +160,15 @@ def parse_if_statement(lexer):
 
 def parse_varassign(lexer):
     varassign = VarAssign()
+    if lexer.peek_token().kind == TokenKind.LESS_THAN:
+        varassign.deref = True
+        lexer.eat_next_token()
+
     varassign.ident = lexer.peek_token()
     lexer.eat_next_token()
     lexer.eat_next_token() # =
     varassign.expr = parse_expr(lexer)
     lexer.eat_next_token() # ;
-    print(varassign)
     return varassign
 
 

@@ -8,6 +8,7 @@ def interp_bytecode(bytecode):
     stack = [0] * 100
     while True:
         code = bytecode[pc]
+        print(f"{code[0]:<30}{code[1] if len(code) > 1 else '':<5}", end="")
         if code[0] == ByteCode.STOP:
             break
         elif code[0] == ByteCode.PUSH_CONST:
@@ -80,4 +81,4 @@ def interp_bytecode(bytecode):
             assert False, code
 
         pc += 1
-        print(f"{bp},{sp},{code[0]:<30}{code[1] if len(code) > 1 else '':<5}{stack[:sp]}")
+        print(f"{stack[:sp]}")

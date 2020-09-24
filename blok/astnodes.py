@@ -149,8 +149,12 @@ class IfStatement(AstNode):
 
 class VarAssign(AstNode):
     def __init__(self):
+        self.deref = False
         self.ident = None
         self.expr = None
+
+    def attributes_tostr(self):
+        return f" deref=\"{self.deref}\""
 
     def content_tostr(self, indent):
         result = f"{' ' * (indent)}{self.ident}\n"

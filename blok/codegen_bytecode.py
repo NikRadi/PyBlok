@@ -237,8 +237,12 @@ class CodeGenByteCode:
             (ByteCode.LOAD_BASE_POINTER,),
             (ByteCode.PUSH_CONST, idx),
             (ByteCode.BINARYOP_ADD,),
-            (ByteCode.STORE_VALUE_AT_IDX,)
         ]
+
+        if varassign.deref:
+            self.bytecode += [(ByteCode.LOAD_VALUE_AT_IDX,)]
+
+        self.bytecode += [(ByteCode.STORE_VALUE_AT_IDX,)]
 
     def gen_bytecode_vardecl(self, vardecl):
         idx = self.add_var(vardecl.ident.value)
