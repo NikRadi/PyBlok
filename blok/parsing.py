@@ -1,5 +1,6 @@
-from token import Token, TokenKind
-from astnodes import (
+import blok.astnodes
+from blok.token import Token, TokenKind
+from blok.astnodes import (
     BlkProgram,
     ReturnStatement,
     FuncCall,

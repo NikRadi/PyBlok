@@ -1,4 +1,4 @@
-from token import Token, TokenKind
+from blok.token import Token, TokenKind
 
 
 class Lexer:

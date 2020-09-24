@@ -1,6 +1,6 @@
 from enum import Enum
-from token import TokenKind
-from astnodes import (
+from blok.token import TokenKind
+from blok.astnodes import (
     BlkProgram,
     ReturnStatement,
     FuncCall,

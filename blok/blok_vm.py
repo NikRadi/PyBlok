@@ -1,4 +1,4 @@
-from codegen_bytecode import ByteCode
+from blok.codegen_bytecode import ByteCode
 
 
 def interp_bytecode(bytecode):

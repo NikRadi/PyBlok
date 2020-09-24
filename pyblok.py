@@ -1,8 +1,8 @@
-from codegen_bytecode import CodeGenByteCode
-from blok_vm import interp_bytecode
-from lexer import Lexer
-from parsing import parse_blkprogram
-from typechecker import TypeChecker
+from blok.codegen_bytecode import CodeGenByteCode
+from blok.blok_vm import interp_bytecode
+from blok.lexer import Lexer
+from blok.parsing import parse_blkprogram
+from blok.typechecker import TypeChecker
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 from copy import deepcopy
 from enum import Enum
-from token import TokenKind
-from typechecker import EvalKind
-from astnodes import (
+from blok.token import TokenKind
+from blok.typechecker import EvalKind
+from blok.astnodes import (
     BlkProgram,
     ReturnStatement,
     FuncCall,
