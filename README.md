@@ -1,2 +1,2 @@
 # PyBlok (WIP)
-A c-like programming language with its own virtual machine using Python.
+A small c-like programming language with its own virtual machine written in Python.
