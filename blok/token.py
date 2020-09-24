@@ -18,16 +18,20 @@ class TokenKind(Enum):
     INT_LITERAL         = 103
     # Operators
     PLUS                = 201
-    MINUS               = 202
-    STAR                = 203
-    SLASH               = 204
-    EQUAL               = 205
-    TWO_EQUAL           = 206
-    EXMARK_EQUAL        = 207
-    LESS_THAN           = 208
-    LESS_THAN_EQUAL     = 209
-    GREATER_THAN        = 210
-    GREATER_THAN_EQUAL  = 211
+    PLUS_EQUAL          = 202
+    MINUS               = 203
+    MINUS_EQUAL         = 204
+    STAR                = 205
+    STAR_EQUAL          = 206
+    SLASH               = 207
+    SLASH_EQUAL         = 208
+    EQUAL               = 209
+    TWO_EQUAL           = 210
+    EXMARK_EQUAL        = 211
+    LESS_THAN           = 212
+    LESS_THAN_EQUAL     = 213
+    GREATER_THAN        = 214
+    GREATER_THAN_EQUAL  = 215
     # Keywords
     IF                  = 300
     ELSE                = 301

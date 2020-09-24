@@ -38,10 +38,10 @@ class Lexer:
                 break
 
         c = self.text[self.char_idx]
-        if   c == "+":      self.add_token(TokenKind.PLUS)
-        elif c == "-":      self.add_token(TokenKind.MINUS)
-        elif c == "*":      self.add_token(TokenKind.STAR)
-        elif c == "/":      self.add_token(TokenKind.SLASH)
+        if   c == "+":      self.try_read_pair(TokenKind.PLUS, "=", TokenKind.PLUS_EQUAL)
+        elif c == "-":      self.try_read_pair(TokenKind.MINUS, "=", TokenKind.MINUS_EQUAL)
+        elif c == "*":      self.try_read_pair(TokenKind.STAR, "=", TokenKind.STAR_EQUAL)
+        elif c == "/":      self.try_read_pair(TokenKind.SLASH, "=", TokenKind.SLASH_EQUAL)
         elif c == "{":      self.add_token(TokenKind.CURLY_BRAC_LEFT)
         elif c == "}":      self.add_token(TokenKind.CURLY_BRAC_RIGHT)
         elif c == "(":      self.add_token(TokenKind.ROUND_BRAC_LEFT)

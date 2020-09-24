@@ -94,10 +94,15 @@ def parse_block(lexer):
     while lexer.peek_token().kind != TokenKind.CURLY_BRAC_RIGHT:
         peek = lexer.peek_token()
         if peek.kind == TokenKind.IDENT:
-            if lexer.peek_token(1).kind == TokenKind.ROUND_BRAC_LEFT:
+            peek1 = lexer.peek_token(1)
+            if peek1.kind == TokenKind.ROUND_BRAC_LEFT:
                 block.statements.append(parse_funccall(lexer))
                 lexer.eat_next_token() # ;
-            elif lexer.peek_token(1).kind == TokenKind.EQUAL:
+            elif peek1.kind == TokenKind.EQUAL or \
+                 peek1.kind == TokenKind.PLUS_EQUAL or \
+                 peek1.kind == TokenKind.MINUS_EQUAL or \
+                 peek1.kind == TokenKind.STAR_EQUAL or \
+                 peek1.kind == TokenKind.SLASH_EQUAL:
                 block.statements.append(parse_varassign(lexer))
             else: assert False, f"\n{peek}"
         elif peek.kind == TokenKind.LESS_THAN:
@@ -166,7 +171,8 @@ def parse_varassign(lexer):
 
     varassign.ident = lexer.peek_token()
     lexer.eat_next_token()
-    lexer.eat_next_token() # =
+    varassign.op = lexer.peek_token()
+    lexer.eat_next_token()
     varassign.expr = parse_expr(lexer)
     lexer.eat_next_token() # ;
     return varassign

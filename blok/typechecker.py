@@ -1,5 +1,5 @@
 from enum import Enum
-from blok.token import TokenKind
+from blok.token import Token, TokenKind
 from blok.astnodes import (
     BlkProgram,
     ReturnStatement,
@@ -51,9 +51,9 @@ class TypeChecker:
 
         self.typecheck_block(funcdecl.block)
         if funcdecl.return_token.kind == TokenKind.VOID and \
-           not isinstance(funcdecl.block.statements[-1], ReturnStatement):
-            return_statement = ReturnStatement()
-            funcdecl.block.statements.append(return_statement)
+           (len(funcdecl.block.statements) == 0 or
+            not isinstance(funcdecl.block.statements[-1], ReturnStatement)):
+            funcdecl.block.statements.append(ReturnStatement())
 
     def typecheck_block(self, block):
         for statement in block.statements:
@@ -93,6 +93,26 @@ class TypeChecker:
 
     def typecheck_varassign(self, varassign):
         self.typecheck_expr(varassign.expr)
+        if varassign.op.kind != TokenKind.EQUAL:
+            binaryop = BinaryOp()
+            binaryop.eval_kind = EvalKind.INT
+
+            literal = Literal()
+            literal.token = varassign.ident
+            binaryop.lhs = literal
+            binaryop.rhs = varassign.expr
+            if varassign.op.kind == TokenKind.PLUS_EQUAL:
+                binaryop.op = Token(TokenKind.PLUS, "", -1)
+            elif varassign.op.kind == TokenKind.MINUS_EQUAL:
+                binaryop.op = Token(TokenKind.MINUS, "", -1)
+            elif varassign.op.kind == TokenKind.STAR_EQUAL:
+                binaryop.op = Token(TokenKind.STAR, "", -1)
+            elif varassign.op.kind == TokenKind.SLASH_EQUAL:
+                binaryop.op = Token(TokenKind.SLASH, "", -1)
+            else: assert False
+
+            varassign.op.kind = TokenKind.EQUAL
+            varassign.expr = binaryop
 
     def typecheck_vardecl(self, vardecl):
         self.current_func.stack_size += 1
