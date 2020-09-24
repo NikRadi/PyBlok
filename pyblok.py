@@ -15,6 +15,5 @@ if __name__ == "__main__":
     lexer = Lexer(text)
     ast = parse_blkprogram(lexer)
     TypeChecker(ast)
-    print(ast)
     bytecode = CodeGenByteCode(ast).gen_bytecode()
     interp_bytecode(bytecode)

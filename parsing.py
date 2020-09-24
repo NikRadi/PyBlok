@@ -98,7 +98,7 @@ def parse_block(lexer):
                 lexer.eat_next_token() # ;
             elif lexer.peek_token(1).kind == TokenKind.EQUAL:
                 block.statements.append(parse_varassign(lexer))
-            else: assert False
+            else: assert False, f"\n{peek}"
         elif peek.kind == TokenKind.INT or \
              peek.kind == TokenKind.INT_PTR:
             block.statements.append(parse_vardecl(lexer))
@@ -162,6 +162,7 @@ def parse_varassign(lexer):
     lexer.eat_next_token() # =
     varassign.expr = parse_expr(lexer)
     lexer.eat_next_token() # ;
+    print(varassign)
     return varassign
 
 
@@ -217,11 +218,16 @@ def parse_literal(lexer):
         lexer.eat_next_token() # )
         return expr
 
-    if token.kind == TokenKind.ROUND_BRAC_LEFT:
+    if lexer.peek_token(1).kind == TokenKind.ROUND_BRAC_LEFT:
         return parse_funccall(lexer)
 
-    if token.kind == TokenKind.IDENT or \
-       token.kind == TokenKind.INT_LITERAL:
+    if token.kind == TokenKind.INT_LITERAL:
+        literal = Literal()
+        literal.token = token
+        lexer.eat_next_token()
+        return literal
+
+    if token.kind == TokenKind.IDENT:
         literal = Literal()
         literal.token = token
         lexer.eat_next_token()

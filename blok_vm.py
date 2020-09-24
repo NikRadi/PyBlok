@@ -5,7 +5,7 @@ def interp_bytecode(bytecode):
     pc = 0 # program counter
     sp = 0 # stack pointer
     bp = 0 # base pointer
-    stack = [0] * 20
+    stack = [0] * 100
     while True:
         code = bytecode[pc]
         if code[0] == ByteCode.STOP:
