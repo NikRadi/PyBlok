@@ -50,6 +50,10 @@ class TypeChecker:
         funcdecl.stack_size = len(funcdecl.params)
 
         self.typecheck_block(funcdecl.block)
+        if funcdecl.return_token.kind == TokenKind.VOID and \
+           not isinstance(funcdecl.block.statements[-1], ReturnStatement):
+            return_statement = ReturnStatement()
+            funcdecl.block.statements.append(return_statement)
 
     def typecheck_block(self, block):
         for statement in block.statements:
