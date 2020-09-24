@@ -99,12 +99,12 @@ class Lexer:
 
             self.char_idx += 1
 
-        if   ident == "int":    self.add_token(TokenKind.INT)
-        elif ident == "if":     self.add_token(TokenKind.IF)
+        if   ident == "if":     self.add_token(TokenKind.IF)
         elif ident == "else":   self.add_token(TokenKind.ELSE)
         elif ident == "while":  self.add_token(TokenKind.WHILE)
         elif ident == "for":    self.add_token(TokenKind.FOR)
         elif ident == "step":   self.add_token(TokenKind.STEP)
         elif ident == "void":   self.add_token(TokenKind.VOID)
         elif ident == "return": self.add_token(TokenKind.RETURN)
+        elif ident == "int":    self.try_read_pair(TokenKind.INT, ">", TokenKind.INT_PTR)
         else:                   self.add_token(TokenKind.IDENT, ident)

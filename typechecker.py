@@ -92,7 +92,8 @@ class TypeChecker:
 
     def typecheck_vardecl(self, vardecl):
         self.current_func.stack_size += 1
-        self.typecheck_expr(vardecl.expr)
+        if vardecl.expr != None:
+            self.typecheck_expr(vardecl.expr)
 
     def typecheck_expr(self, expr):
         if isinstance(expr, Literal):
@@ -103,7 +104,7 @@ class TypeChecker:
             self.typecheck_binaryop(expr)
         elif isinstance(expr, FuncCall):
             self.typecheck_funccall(expr)
-        else: assert False
+        else: assert False, f"\n{expr}"
 
     def typecheck_literal(self, literal):
         if literal.token.kind == TokenKind.INT_LITERAL:
@@ -118,6 +119,10 @@ class TypeChecker:
         if op_kind == TokenKind.PLUS or \
            op_kind == TokenKind.MINUS:
             unaryop.eval_kind = EvalKind.INT
+        elif op_kind == TokenKind.LESS_THAN:
+            unaryop.eval_kind = EvalKind.INT
+        elif op_kind == TokenKind.GREATER_THAN:
+            unaryop.eval_kind = EvalKind.PTR
         else: assert False, f"\n{unaryop}"
 
     def typecheck_binaryop(self, binaryop):
@@ -142,6 +147,7 @@ class EvalKind(Enum):
     INT     = 0
     BOOL    = 1
     VOID    = 2
+    PTR     = 3
 
 
     def __str__(self):

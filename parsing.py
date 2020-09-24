@@ -99,7 +99,8 @@ def parse_block(lexer):
             elif lexer.peek_token(1).kind == TokenKind.EQUAL:
                 block.statements.append(parse_varassign(lexer))
             else: assert False
-        elif peek.kind == TokenKind.INT:
+        elif peek.kind == TokenKind.INT or \
+             peek.kind == TokenKind.INT_PTR:
             block.statements.append(parse_vardecl(lexer))
         elif peek.kind == TokenKind.IF:
             block.statements.append(parse_if_statement(lexer))
@@ -200,7 +201,10 @@ def parse_expr(lexer, min_precedence=0):
 
 def parse_literal(lexer):
     token = lexer.peek_token()
-    if token.kind == TokenKind.PLUS or token.kind == TokenKind.MINUS:
+    if token.kind == TokenKind.PLUS or \
+       token.kind == TokenKind.MINUS or \
+       token.kind == TokenKind.LESS_THAN or \
+       token.kind == TokenKind.GREATER_THAN:
         lexer.eat_next_token()
         unaryop = UnaryOp()
         unaryop.op = token
@@ -213,12 +217,14 @@ def parse_literal(lexer):
         lexer.eat_next_token() # )
         return expr
 
-    if lexer.peek_token(1).kind == TokenKind.ROUND_BRAC_LEFT:
+    if token.kind == TokenKind.ROUND_BRAC_LEFT:
         return parse_funccall(lexer)
-    else:
+
+    if token.kind == TokenKind.IDENT or \
+       token.kind == TokenKind.INT_LITERAL:
         literal = Literal()
         literal.token = token
         lexer.eat_next_token()
         return literal
 
-    assert False
+    assert False, f"\n{token}"

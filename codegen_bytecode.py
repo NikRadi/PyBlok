@@ -260,6 +260,8 @@ class CodeGenByteCode:
             self.gen_bytecode_arith_expr(expr)
         elif expr.eval_kind == EvalKind.BOOL:
             self.gen_bytecode_logic_expr(expr)
+        elif expr.eval_kind == EvalKind.PTR:
+            self.gen_bytecode_ptr_expr(expr)
         else: assert False, f"\n{expr}"
 
     def gen_bytecode_arith_expr(self, expr):
@@ -270,10 +272,13 @@ class CodeGenByteCode:
         else: assert False, f"\n{expr}"
 
     def gen_bytecode_logic_expr(self, expr):
-        if isinstance(expr, UnaryOp):
-            self.gen_bytecode_logic_unaryop(expr)
-        elif isinstance(expr, BinaryOp):
+        if isinstance(expr, BinaryOp):
             self.gen_bytecode_logic_binaryop(expr)
+        else: assert False
+
+    def gen_bytecode_ptr_expr(self, expr):
+        if isinstance(expr, UnaryOp):
+            self.gen_bytecode_ptr_unaryop(expr)
         else: assert False
 
     def gen_bytecode_literal(self, literal):
@@ -293,6 +298,11 @@ class CodeGenByteCode:
         self.gen_bytecode_expr(unaryop.expr)
         if unaryop.op.kind == TokenKind.MINUS:
             self.bytecode += [(ByteCode.UNARYOP_NEG,)]
+        elif unaryop.op.kind == TokenKind.LESS_THAN:
+            self.bytecode += [
+                (ByteCode.LOAD_VALUE_AT_IDX,)
+            ]
+        else: assert False, f"\n{unaryop}"
 
     def gen_bytecode_arith_binaryop(self, binaryop):
         self.gen_bytecode_expr(binaryop.lhs)
@@ -303,9 +313,6 @@ class CodeGenByteCode:
         elif op_kind == TokenKind.STAR:  self.bytecode += [(ByteCode.BINARYOP_MUL,)]
         elif op_kind == TokenKind.SLASH: self.bytecode += [(ByteCode.BINARYOP_DIV,)]
         else: assert False
-
-    def gen_bytecode_logic_unaryop(self, unaryop):
-        raise NotImplementedError
 
     def gen_bytecode_logic_binaryop(self, binaryop):
         self.gen_bytecode_expr(binaryop.lhs)
@@ -327,3 +334,11 @@ class CodeGenByteCode:
             assert False
 
         self.bytecode += [(jump_kind,)]
+
+    def gen_bytecode_ptr_unaryop(self, unaryop):
+        varidx = self.localvar_to_idx[unaryop.expr.token.value]
+        self.bytecode += [
+            (ByteCode.LOAD_BASE_POINTER,),
+            (ByteCode.PUSH_CONST, varidx),
+            (ByteCode.BINARYOP_ADD,)
+        ]
