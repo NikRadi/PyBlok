@@ -1,3 +1,4 @@
+from blok.error import errors, CompileError
 from blok.token import Token, TokenKind
 
 
@@ -18,6 +19,9 @@ class Lexer:
 
     def eat_next_token(self):
         self.token_idx += 1
+
+    def add_err(self, msg):
+        errors.append(CompileError(None, self.line, msg))
 
     def add_token(self, kind, value=""):
         self.tokens.append(Token(kind, value, self.line))
@@ -56,7 +60,7 @@ class Lexer:
         elif c.isdecimal(): self.read_number()
         elif c.isalpha():   self.read_ident()
         else:
-            print(f"invalid character '{c}'")
+            self.add_err(f"Invalid character '{c}'")
             self.add_token(TokenKind.INVALID)
 
         self.char_idx += 1
@@ -75,7 +79,7 @@ class Lexer:
             self.char_idx += 1
             inttype_char = self.text[self.char_idx].lower()
             if self.char_idx + 1 == len(self.text):
-                print(f"ERR: '0{inttype_char}' is not a valid integer")
+                self.add_err(f"Invalid integer '0{inttype_char}'")
             else:
                 self.char_idx += 1
                 if inttype_char == "x":
@@ -87,11 +91,23 @@ class Lexer:
             self.add_token(TokenKind.INT_LITERAL, int(number))
 
     def read_hex_number(self):
-        number = self.read_number_stream(lambda x: x.isdecimal() or x in "abcdef")
+        is_valid_char = lambda x: x.isdecimal() or x.lower() in "abcdec"
+        if not is_valid_char(self.text[self.char_idx]):
+            self.add_err(f"Invalid hexidecimal integer '0x'")
+            number = "0"
+        else:
+            number = self.read_number_stream(is_valid_char)
+
         self.add_token(TokenKind.INT_LITERAL, int(number, base=16))
 
     def read_bin_number(self):
-        number = self.read_number_stream(lambda x: x == "0" or x == "1")
+        is_valid_char = lambda x: x == "0" or x == "1"
+        if not is_valid_char(self.text[self.char_idx]):
+            self.add_err(f"Invalid binary integer '0b'")
+            number = "0"
+        else:
+            number = self.read_number_stream(is_valid_char)
+
         self.add_token(TokenKind.INT_LITERAL, int(number, base=2))
 
     def read_number_stream(self, is_valid_char_func):
@@ -108,7 +124,7 @@ class Lexer:
             peek = self.text[self.char_idx + 1]
             if peek == "_":
                 if was_last_char_underscore:
-                    print("ERR: Two '_' in a row in integer")
+                    self.add_err("Invalid integer containing two '_' in a row")
                 else:
                     was_last_char_underscore = True
                     self.char_idx += 1
@@ -121,7 +137,7 @@ class Lexer:
             self.char_idx += 1
 
         if was_last_char_underscore:
-            print("ERR: Last char in integer cannot be '_'")
+            self.add_err(f"Invalid integer ending with '_'")
 
         return number
 
