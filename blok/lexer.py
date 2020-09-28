@@ -148,7 +148,35 @@ class Lexer:
         self.add_token(TokenKind.INT_LITERAL, int(number, base=16))
 
     def read_bin_number(self):
-        print("Reading bin number")
+        peek = self.text[self.char_idx]
+        number = ""
+        was_last_char_underscore = False
+        while True:
+            if not was_last_char_underscore:
+                number += peek
+
+            if self.char_idx + 1 == len(self.text):
+                break
+
+            peek = self.text[self.char_idx + 1]
+            if peek == "_":
+                if was_last_char_underscore:
+                    print("ERR: Two '_' in a row in integer")
+                else:
+                    was_last_char_underscore = True
+                    self.char_idx += 1
+                    continue
+            elif peek == "0" or peek == "1":
+                was_last_char_underscore = False
+            else:
+                break
+
+            self.char_idx += 1
+
+        if was_last_char_underscore:
+            print("ERR1")
+
+        self.add_token(TokenKind.INT_LITERAL, int(number, base=2))
 
     def read_ident(self):
         ident = ""
