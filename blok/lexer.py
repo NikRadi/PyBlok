@@ -60,7 +60,7 @@ class Lexer:
         elif c.isdecimal(): self.read_number()
         elif c.isalpha():   self.read_ident()
         else:
-            self.add_err(f"Invalid character '{c}'")
+            self.add_err(f"invalid character '{c}'")
             self.add_token(TokenKind.INVALID)
 
         self.char_idx += 1
@@ -79,7 +79,7 @@ class Lexer:
             self.char_idx += 1
             inttype_char = self.text[self.char_idx].lower()
             if self.char_idx + 1 == len(self.text):
-                self.add_err(f"Invalid integer '0{inttype_char}'")
+                self.add_err(f"invalid integer '0{inttype_char}'")
             else:
                 self.char_idx += 1
                 if inttype_char == "x":
@@ -93,7 +93,7 @@ class Lexer:
     def read_hex_number(self):
         is_valid_char = lambda x: x.isdecimal() or x.lower() in "abcdec"
         if not is_valid_char(self.text[self.char_idx]):
-            self.add_err(f"Invalid hexidecimal integer '0x'")
+            self.add_err(f"invalid hexidecimal integer '0x'")
             number = "0"
         else:
             number = self.read_number_stream(is_valid_char)
@@ -103,7 +103,7 @@ class Lexer:
     def read_bin_number(self):
         is_valid_char = lambda x: x == "0" or x == "1"
         if not is_valid_char(self.text[self.char_idx]):
-            self.add_err(f"Invalid binary integer '0b'")
+            self.add_err(f"invalid binary integer '0b'")
             number = "0"
         else:
             number = self.read_number_stream(is_valid_char)
@@ -124,7 +124,7 @@ class Lexer:
             peek = self.text[self.char_idx + 1]
             if peek == "_":
                 if was_last_char_underscore:
-                    self.add_err("Invalid integer containing two '_' in a row")
+                    self.add_err("invalid integer containing two '_' in a row")
                 else:
                     was_last_char_underscore = True
                     self.char_idx += 1
@@ -137,7 +137,7 @@ class Lexer:
             self.char_idx += 1
 
         if was_last_char_underscore:
-            self.add_err(f"Invalid integer ending with '_'")
+            self.add_err(f"invalid integer ending with '_'")
 
         return number
 

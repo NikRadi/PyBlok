@@ -9,4 +9,4 @@ class CompileError:
         self.msg = msg
 
     def __str__(self):
-        return f"{self.filename}({self.line}): {self.msg}"
+        return f"{self.filename}({self.line}) error: {self.msg}"
