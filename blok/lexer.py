@@ -94,7 +94,7 @@ class Lexer:
                 break
 
             peek = self.text[self.char_idx + 1]
-numbe            if not peek.isalpha() and not peek.isdecimal() and peek != "_":
+            if not peek.isalpha() and not peek.isdecimal() and peek != "_":
                 break
 
             self.char_idx += 1
