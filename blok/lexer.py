@@ -70,20 +70,85 @@ class Lexer:
             self.add_token(kind1)
 
     def read_number(self):
-        number = ""
         peek = self.text[self.char_idx]
+        if peek == "0" and self.char_idx + 1 != len(self.text):
+            if self.text[self.char_idx + 1].lower() == "x":
+                self.char_idx += 1
+                if self.char_idx + 1 == len(self.text):
+                    print("ERR: Invalid hex number '0x'")
+                else:
+                    self.char_idx += 1
+                    return self.read_hex_number()
+            elif self.text[self.char_idx + 1].lower() == "b":
+                self.char_idx += 1
+                if self.char_idx + 1 == len(self.text):
+                    print("ERR: Invalid binary number '0b'")
+                else:
+                    self.char_idx += 1
+                    return self.read_bin_number()
+
+        number = ""
+        was_last_char_underscore = False
         while True:
-            number += peek
+            if not was_last_char_underscore:
+                number += peek
+
             if self.char_idx + 1 == len(self.text):
                 break
 
             peek = self.text[self.char_idx + 1]
-            if not peek.isdecimal():
+            if peek == "_":
+                if was_last_char_underscore:
+                    print("ERR: Two '_' in a row in integer")
+                else:
+                    was_last_char_underscore = True
+                    self.char_idx += 1
+                    continue
+            elif peek.isdecimal():
+                was_last_char_underscore = False
+            else:
                 break
 
             self.char_idx += 1
 
+        if was_last_char_underscore:
+            print("ERR: Integer ending in '_'")
+
         self.add_token(TokenKind.INT_LITERAL, int(number))
+
+    def read_hex_number(self):
+        peek = self.text[self.char_idx]
+        number = ""
+        was_last_char_underscore = False
+        while True:
+            if not was_last_char_underscore:
+                number += peek
+
+            if self.char_idx + 1 == len(self.text):
+                break
+
+            peek = self.text[self.char_idx + 1]
+            if peek == "_":
+                if was_last_char_underscore:
+                    print("ERR: Two '_' in a row in integer")
+                else:
+                    was_last_char_underscore = True
+                    self.char_idx += 1
+                    continue
+            elif peek.isdecimal() or peek in "abcdef":
+                was_last_char_underscore = False
+            else:
+                break
+
+            self.char_idx += 1
+
+        if was_last_char_underscore:
+            print("ERR1")
+
+        self.add_token(TokenKind.INT_LITERAL, int(number, base=16))
+
+    def read_bin_number(self):
+        print("Reading bin number")
 
     def read_ident(self):
         ident = ""
