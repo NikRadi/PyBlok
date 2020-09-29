@@ -169,13 +169,13 @@ class IfStatement(AstNode):
 
 class VarAssign(AstNode):
     def __init__(self):
-        self.deref = False
+        self.deref_depth = 0
         self.op = None
         self.ident = None
         self.expr = None
 
     def attributes_tostr(self):
-        return f" deref=\"{self.deref}\""
+        return f" deref_depth=\"{self.deref_depth}\""
 
     def content_tostr(self, indent):
         result = f"{' ' * (indent)}{self.ident}\n"
@@ -186,9 +186,13 @@ class VarAssign(AstNode):
 
 class VarDecl(AstNode):
     def __init__(self):
+        self.ptr_depth = 0
         self.kind = None
         self.ident = None
         self.expr = None
+
+    def attributes_tostr(self):
+        return f" ptr_depth=\"{self.ptr_depth}\""
 
     def content_tostr(self, indent):
         result = f"{' ' * (indent)}{self.kind}\n"

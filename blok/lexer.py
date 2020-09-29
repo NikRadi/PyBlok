@@ -168,5 +168,5 @@ class Lexer:
         elif ident == "return":   self.add_token(TokenKind.RETURN)
         elif ident == "break":    self.add_token(TokenKind.BREAK)
         elif ident == "continue": self.add_token(TokenKind.CONTINUE)
-        elif ident == "int":      self.try_read_pair(TokenKind.INT, ">", TokenKind.INT_PTR)
+        elif ident == "int":      self.add_token(TokenKind.INT)
         else:                     self.add_token(TokenKind.IDENT, ident)

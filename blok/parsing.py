@@ -112,8 +112,7 @@ def parse_block(lexer, parent):
             else: assert False, f"\n{peek}"
         elif peek.kind == TokenKind.LESS_THAN:
             block.statements.append(parse_varassign(lexer))
-        elif peek.kind == TokenKind.INT or \
-             peek.kind == TokenKind.INT_PTR:
+        elif peek.kind == TokenKind.INT:
             block.statements.append(parse_vardecl(lexer))
         elif peek.kind == TokenKind.IF:
             block.statements.append(parse_if_statement(lexer, block))
@@ -209,8 +208,8 @@ def parse_if_statement(lexer, parent):
 
 def parse_varassign(lexer):
     varassign = VarAssign()
-    if lexer.peek_token().kind == TokenKind.LESS_THAN:
-        varassign.deref = True
+    while lexer.peek_token().kind == TokenKind.LESS_THAN:
+        varassign.deref_depth += 1
         lexer.eat_next_token()
 
     varassign.ident = lexer.peek_token()
@@ -226,6 +225,10 @@ def parse_vardecl(lexer):
     vardecl = VarDecl()
     vardecl.kind = lexer.peek_token()
     lexer.eat_next_token()
+    while lexer.peek_token().kind == TokenKind.GREATER_THAN:
+        vardecl.ptr_depth += 1
+        lexer.eat_next_token()
+
     vardecl.ident = lexer.peek_token()
     lexer.eat_next_token()
     if lexer.peek_token().kind == TokenKind.SEMICOLON:

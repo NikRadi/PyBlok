@@ -48,8 +48,7 @@ class TokenKind(Enum):
     TWO_DOT             = 306
     RETURN              = 307
     INT                 = 308
-    INT_PTR             = 309
-    VOID                = 310
+    VOID                = 309
     # Separators
     SEMICOLON           = 400
     COMMA               = 401

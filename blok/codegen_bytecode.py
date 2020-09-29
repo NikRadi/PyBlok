@@ -54,6 +54,7 @@ class ByteCode(Enum):
 
 class CodeGenByteCode:
     def __init__(self, ast):
+        print(ast)
         self.ast = ast
         self.localvar_idx = 0
         self.bytecode = []
@@ -256,8 +257,10 @@ class CodeGenByteCode:
             (ByteCode.BINARYOP_ADD,),
         ]
 
-        if varassign.deref:
+        deref_depth = varassign.deref_depth
+        while deref_depth > 0:
             self.bytecode += [(ByteCode.LOAD_VALUE_AT_IDX,)]
+            deref_depth -= 1
 
         self.bytecode += [(ByteCode.STORE_VALUE_AT_IDX,)]
 
