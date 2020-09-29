@@ -57,6 +57,8 @@ class Lexer:
         elif c == "!":      self.try_read_pair(TokenKind.INVALID, "=", TokenKind.EXMARK_EQUAL)
         elif c == "<":      self.try_read_pair(TokenKind.LESS_THAN, "=", TokenKind.LESS_THAN_EQUAL)
         elif c == ">":      self.try_read_pair(TokenKind.GREATER_THAN, "=", TokenKind.GREATER_THAN_EQUAL)
+        elif c == "&":      self.try_read_pair(TokenKind.AMPERSAND, "&", TokenKind.TWO_AMPERSAND)
+        elif c == "|":      self.try_read_pair(TokenKind.VERT_LINE, "|", TokenKind.TWO_VERT_LINE)
         elif c.isdecimal(): self.read_number()
         elif c.isalpha():   self.read_ident()
         else:

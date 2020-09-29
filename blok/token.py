@@ -34,6 +34,10 @@ class TokenKind(Enum):
     LESS_THAN_EQUAL     = 213
     GREATER_THAN        = 214
     GREATER_THAN_EQUAL  = 215
+    AMPERSAND           = 216
+    TWO_AMPERSAND       = 217
+    VERT_LINE           = 218
+    TWO_VERT_LINE       = 219
     # Keywords
     IF                  = 300
     ELSE                = 301
