@@ -8,6 +8,7 @@ from blok.astnodes import (
     Block,
     ForLoop,
     WhileLoop,
+    BreakStatement,
     IfStatement,
     VarAssign,
     VarDecl,
@@ -83,12 +84,13 @@ def parse_funcdecl(lexer):
         funcdecl.params.append(vardecl)
 
     lexer.eat_next_token() # )
-    funcdecl.block = parse_block(lexer)
+    funcdecl.block = parse_block(lexer, funcdecl)
     return funcdecl
 
 
-def parse_block(lexer):
+def parse_block(lexer, parent):
     block = Block()
+    block.parent = parent
     assert lexer.peek_token().kind == TokenKind.CURLY_BRAC_LEFT, lexer.peek_token().kind
     lexer.eat_next_token() # {
     while lexer.peek_token().kind != TokenKind.CURLY_BRAC_RIGHT:
@@ -111,13 +113,15 @@ def parse_block(lexer):
              peek.kind == TokenKind.INT_PTR:
             block.statements.append(parse_vardecl(lexer))
         elif peek.kind == TokenKind.IF:
-            block.statements.append(parse_if_statement(lexer))
+            block.statements.append(parse_if_statement(lexer, block))
         elif peek.kind == TokenKind.WHILE:
             block.statements.append(parse_while_loop(lexer))
         elif peek.kind == TokenKind.FOR:
             block.statements.append(parse_for_loop(lexer))
         elif peek.kind == TokenKind.RETURN:
             block.statements.append(parse_return_statement(lexer))
+        elif peek.kind == TokenKind.BREAK:
+            block.statements.append(parse_break_statement(lexer, block))
         else: assert False, f"\n{lexer.peek_token()}"
 
     lexer.eat_next_token() # }
@@ -135,7 +139,7 @@ def parse_for_loop(lexer):
     for_loop.stop = parse_expr(lexer)
     lexer.eat_next_token() # step
     for_loop.step = parse_expr(lexer)
-    for_loop.block = parse_block(lexer)
+    for_loop.block = parse_block(lexer, for_loop)
     return for_loop
 
 
@@ -143,21 +147,40 @@ def parse_while_loop(lexer):
     while_loop = WhileLoop()
     lexer.eat_next_token() # while
     while_loop.condition = parse_expr(lexer)
-    while_loop.block = parse_block(lexer)
+    while_loop.block = parse_block(lexer, while_loop)
     return while_loop
 
 
-def parse_if_statement(lexer):
+def parse_break_statement(lexer, parent):
+    break_statement = BreakStatement()
+    break_statement.parent = parent
+    lexer.eat_next_token() # break
+    lexer.eat_next_token() # ;
+    break_statement.parent_loop = parent
+    while True:
+        if isinstance(break_statement.parent_loop, ForLoop) or \
+           isinstance(break_statement.parent_loop, WhileLoop):
+            break
+
+        break_statement.parent_loop = break_statement.parent_loop.parent
+
+    return break_statement
+
+
+def parse_if_statement(lexer, parent):
     if_statement = IfStatement()
+    if_statement.parent = parent
     lexer.eat_next_token() # if
     if_statement.condition = parse_expr(lexer)
-    if_statement.block = parse_block(lexer)
+    if_statement.block = parse_block(lexer, if_statement)
     if lexer.peek_token().kind == TokenKind.ELSE:
         lexer.eat_next_token()
         if lexer.peek_token().kind == TokenKind.CURLY_BRAC_LEFT:
-            if_statement.else_block = parse_block(lexer)
+            # TODO: if_statement.block and if_statement.else_block are not the same block
+            #       but the block will be assigned the same parent
+            if_statement.else_block = parse_block(lexer, if_statement)
         elif lexer.peek_token().kind == TokenKind.IF:
-            if_statement.else_block = parse_if_statement(lexer)
+            if_statement.else_block = parse_if_statement(lexer, if_statement)
         else: assert False
 
     return if_statement

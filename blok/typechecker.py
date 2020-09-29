@@ -8,6 +8,7 @@ from blok.astnodes import (
     Block,
     ForLoop,
     WhileLoop,
+    BreakStatement,
     IfStatement,
     VarAssign,
     VarDecl,
@@ -71,6 +72,9 @@ class TypeChecker:
                 self.typecheck_funccall(statement)
             elif isinstance(statement, ReturnStatement):
                 self.typecheck_return_statement(statement)
+            elif isinstance(statement, BreakStatement):
+                self.typecheck_break_statement(statement)
+            else: assert False
 
     def typecheck_for_loop(self, for_loop):
         self.current_func.stack_size += 1
@@ -82,6 +86,9 @@ class TypeChecker:
     def typecheck_while_loop(self, while_loop):
         self.typecheck_expr(while_loop.condition)
         self.typecheck_block(while_loop.block)
+
+    def typecheck_break_statement(self, break_statement):
+        pass
 
     def typecheck_if_statement(self, if_statement):
         self.typecheck_block(if_statement.block)

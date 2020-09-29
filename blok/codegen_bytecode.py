@@ -10,6 +10,7 @@ from blok.astnodes import (
     Block,
     ForLoop,
     WhileLoop,
+    BreakStatement,
     IfStatement,
     VarAssign,
     VarDecl,
@@ -103,9 +104,11 @@ class CodeGenByteCode:
         ]
 
         self.gen_bytecode_blkfile()
-        self.replace_labels_by_idx()
         for i, j in enumerate(self.bytecode): print(i, j)
         print()
+        self.replace_labels_by_idx()
+        # for i, j in enumerate(self.bytecode): print(i, j)
+        # print()
         return self.bytecode
 
     def gen_bytecode_blkfile(self):
@@ -158,29 +161,32 @@ class CodeGenByteCode:
                 self.gen_bytecode_funccall(statement)
             elif isinstance(statement, ReturnStatement):
                 self.gen_bytecode_return_statement(statement)
+            elif isinstance(statement, BreakStatement):
+                self.gen_bytecode_break_statement(statement)
+            else: assert False
 
         self.localvar_to_idx = vars_before
 
     def gen_bytecode_for_loop(self, for_loop):
         idx = self.add_var(for_loop.var_ident.value)
         self.gen_bytecode_expr(for_loop.start)
-        start_label = self.get_new_label()
+        for_loop.start_label = self.get_new_label()
         self.bytecode += [
             (ByteCode.LOAD_BASE_POINTER,),
             (ByteCode.PUSH_CONST, idx),
             (ByteCode.BINARYOP_ADD,),
             (ByteCode.STORE_VALUE_AT_IDX,),
-            (ByteCode.LABEL, start_label)
+            (ByteCode.LABEL, for_loop.start_label)
         ]
 
         self.gen_bytecode_expr(for_loop.stop)
-        end_label = self.get_new_label()
+        for_loop.end_label = self.get_new_label()
         self.bytecode += [
             (ByteCode.LOAD_BASE_POINTER,),
             (ByteCode.PUSH_CONST, idx),
             (ByteCode.BINARYOP_ADD,),
             (ByteCode.LOAD_VALUE_AT_IDX,),
-            (ByteCode.JUMP_IF_LESS_THAN, end_label)
+            (ByteCode.JUMP_IF_LESS_THAN, for_loop.end_label)
         ]
 
         self.gen_bytecode_block(for_loop.block)
@@ -197,19 +203,22 @@ class CodeGenByteCode:
             (ByteCode.BINARYOP_ADD,),
             (ByteCode.STORE_VALUE_AT_IDX,),
 
-            (ByteCode.JUMP, start_label),
-            (ByteCode.LABEL, end_label)
+            (ByteCode.JUMP, for_loop.start_label),
+            (ByteCode.LABEL, for_loop.end_label)
         ]
 
     def gen_bytecode_while_loop(self, while_loop):
-        start_label = self.get_new_label()
-        end_label = self.get_new_label()
-        self.bytecode += [(ByteCode.LABEL, start_label)]
+        while_loop.start_label = self.get_new_label()
+        while_loop.end_label = self.get_new_label()
+        self.bytecode += [(ByteCode.LABEL, while_loop.start_label)]
         self.gen_bytecode_expr(while_loop.condition)
-        self.bytecode[-1] = (self.bytecode[-1][0], end_label)
+        self.bytecode[-1] = (self.bytecode[-1][0], while_loop.end_label)
         self.gen_bytecode_block(while_loop.block)
-        self.bytecode += [(ByteCode.JUMP, start_label)]
-        self.bytecode += [(ByteCode.LABEL, end_label)]
+        self.bytecode += [(ByteCode.JUMP, while_loop.start_label)]
+        self.bytecode += [(ByteCode.LABEL, while_loop.end_label)]
+
+    def gen_bytecode_break_statement(self, break_statement):
+        self.bytecode += [(ByteCode.JUMP, break_statement.parent_loop.end_label)]
 
     def gen_bytecode_if_statement(self, if_statement):
         self.gen_bytecode_expr(if_statement.condition)

@@ -1,6 +1,9 @@
 
 
 class AstNode:
+    def __init__(self):
+        self.parent = None
+
     def attributes_tostr(self):
         return ""
 
@@ -27,6 +30,12 @@ class Expr(AstNode):
         if self.eval_kind != None:
             return f" eval_kind=\"{self.eval_kind}\""
         return ""
+
+
+class Loop(AstNode):
+    def __init__(self):
+        self.start_label = None
+        self.end_label = None
 
 
 class BlkProgram(AstNode):
@@ -104,7 +113,7 @@ class Block(AstNode):
         return result
 
 
-class ForLoop(AstNode):
+class ForLoop(Loop):
     def __init__(self):
         self.var_ident = None
         self.start = None
@@ -121,7 +130,7 @@ class ForLoop(AstNode):
         return result
 
 
-class WhileLoop(AstNode):
+class WhileLoop(Loop):
     def __init__(self):
         self.condition = None
         self.block = None
@@ -130,6 +139,11 @@ class WhileLoop(AstNode):
         result = self.condition.tostr(indent)
         result += self.block.tostr(indent)
         return result
+
+
+class BreakStatement(AstNode):
+    def __init__(self):
+        self.parent_loop = None
 
 
 class IfStatement(AstNode):

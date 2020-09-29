@@ -16,6 +16,8 @@ class TokenKind(Enum):
     INVALID             = 101
     IDENT               = 102
     INT_LITERAL         = 103
+    BREAK               = 104
+    CONTINUE            = 105
     # Operators
     PLUS                = 201
     PLUS_EQUAL          = 202
