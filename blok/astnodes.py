@@ -24,6 +24,7 @@ class AstNode:
 
 class Expr(AstNode):
     def __init__(self):
+        super().__init__()
         self.eval_kind = None
 
     def attributes_tostr(self):
@@ -34,12 +35,14 @@ class Expr(AstNode):
 
 class Loop(AstNode):
     def __init__(self):
+        super().__init__()
         self.start_label = None
         self.end_label = None
 
 
 class BlkProgram(AstNode):
     def __init__(self):
+        super().__init__()
         self.funcdecls = []
 
     def content_tostr(self, indent):
@@ -52,6 +55,7 @@ class BlkProgram(AstNode):
 
 class ReturnStatement(AstNode):
     def __init__(self):
+        super().__init__()
         self.expr = None
 
 
@@ -80,6 +84,7 @@ class FuncCall(AstNode):
 
 class FuncDecl(AstNode):
     def __init__(self):
+        super().__init__()
         self.stack_size = None
         self.return_token = None
         self.params = []
@@ -103,6 +108,7 @@ class FuncDecl(AstNode):
 
 class Block(AstNode):
     def __init__(self):
+        super().__init__()
         self.statements = []
 
     def content_tostr(self, indent):
@@ -115,6 +121,7 @@ class Block(AstNode):
 
 class ForLoop(Loop):
     def __init__(self):
+        super().__init__()
         self.var_ident = None
         self.start = None
         self.stop = None
@@ -133,6 +140,7 @@ class ForLoop(Loop):
 
 class WhileLoop(Loop):
     def __init__(self):
+        super().__init__()
         self.condition = None
         self.block = None
 
@@ -144,16 +152,19 @@ class WhileLoop(Loop):
 
 class BreakStatement(AstNode):
     def __init__(self):
+        super().__init__()
         self.parent_loop = None
 
 
 class ContinueStatement(AstNode):
     def __init__(self):
+        super().__init__()
         self.parent_loop = None
 
 
 class IfStatement(AstNode):
     def __init__(self):
+        super().__init__()
         self.condition = None
         self.block = None
         self.else_block = None
@@ -169,6 +180,7 @@ class IfStatement(AstNode):
 
 class VarAssign(AstNode):
     def __init__(self):
+        super().__init__()
         self.deref_depth = 0
         self.op = None
         self.ident = None
@@ -186,6 +198,7 @@ class VarAssign(AstNode):
 
 class VarDecl(AstNode):
     def __init__(self):
+        super().__init__()
         self.ptr_depth = 0
         self.kind = None
         self.ident = None

@@ -109,10 +109,18 @@ class TypeChecker:
         if varassign.op.kind != TokenKind.EQUAL:
             binaryop = BinaryOp()
             binaryop.eval_kind = EvalKind.INT
+            binaryop.lhs = Literal()
+            binaryop.lhs.token = varassign.ident
+            deref_depth = varassign.deref_depth
+            while deref_depth > 0:
+                unaryop = UnaryOp()
+                unaryop.eval_kind = EvalKind.INT
+                unaryop.op = Token(TokenKind.LESS_THAN, "", -1)
+                unaryop.expr = binaryop.lhs
 
-            literal = Literal()
-            literal.token = varassign.ident
-            binaryop.lhs = literal
+                binaryop.lhs = unaryop
+                deref_depth -= 1
+
             binaryop.rhs = varassign.expr
             if varassign.op.kind == TokenKind.PLUS_EQUAL:
                 binaryop.op = Token(TokenKind.PLUS, "", -1)
