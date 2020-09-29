@@ -75,7 +75,9 @@ class Lexer:
 
     def read_number(self):
         peek = self.text[self.char_idx]
-        if peek == "0" and self.char_idx + 1 != len(self.text):
+        if peek == "0" and self.char_idx + 1 != len(self.text) and \
+           self.text[self.char_idx + 1] == "x" or \
+           self.text[self.char_idx + 1] == "b":
             self.char_idx += 1
             inttype_char = self.text[self.char_idx].lower()
             if self.char_idx + 1 == len(self.text):
@@ -155,12 +157,14 @@ class Lexer:
 
             self.char_idx += 1
 
-        if   ident == "if":     self.add_token(TokenKind.IF)
-        elif ident == "else":   self.add_token(TokenKind.ELSE)
-        elif ident == "while":  self.add_token(TokenKind.WHILE)
-        elif ident == "for":    self.add_token(TokenKind.FOR)
-        elif ident == "step":   self.add_token(TokenKind.STEP)
-        elif ident == "void":   self.add_token(TokenKind.VOID)
-        elif ident == "return": self.add_token(TokenKind.RETURN)
-        elif ident == "int":    self.try_read_pair(TokenKind.INT, ">", TokenKind.INT_PTR)
-        else:                   self.add_token(TokenKind.IDENT, ident)
+        if   ident == "if":       self.add_token(TokenKind.IF)
+        elif ident == "else":     self.add_token(TokenKind.ELSE)
+        elif ident == "while":    self.add_token(TokenKind.WHILE)
+        elif ident == "for":      self.add_token(TokenKind.FOR)
+        elif ident == "step":     self.add_token(TokenKind.STEP)
+        elif ident == "void":     self.add_token(TokenKind.VOID)
+        elif ident == "return":   self.add_token(TokenKind.RETURN)
+        elif ident == "break":    self.add_token(TokenKind.BREAK)
+        elif ident == "continue": self.add_token(TokenKind.CONTINUE)
+        elif ident == "int":      self.try_read_pair(TokenKind.INT, ">", TokenKind.INT_PTR)
+        else:                     self.add_token(TokenKind.IDENT, ident)
