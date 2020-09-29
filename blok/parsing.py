@@ -225,9 +225,15 @@ def parse_vardecl(lexer):
     vardecl = VarDecl()
     vardecl.kind = lexer.peek_token()
     lexer.eat_next_token()
-    while lexer.peek_token().kind == TokenKind.GREATER_THAN:
-        vardecl.ptr_depth += 1
+    if lexer.peek_token().kind == TokenKind.GREATER_THAN:
+        while lexer.peek_token().kind == TokenKind.GREATER_THAN:
+            vardecl.ptr_depth += 1
+            lexer.eat_next_token()
+    elif lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
+        lexer.eat_next_token() # [
+        vardecl.stack_size = int(lexer.peek_token().value)
         lexer.eat_next_token()
+        lexer.eat_next_token() # ]
 
     vardecl.ident = lexer.peek_token()
     lexer.eat_next_token()

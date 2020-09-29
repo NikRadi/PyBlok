@@ -136,7 +136,7 @@ class TypeChecker:
             varassign.expr = binaryop
 
     def typecheck_vardecl(self, vardecl):
-        self.current_func.stack_size += 1
+        self.current_func.stack_size += vardecl.stack_size
         if vardecl.expr != None:
             self.typecheck_expr(vardecl.expr)
 

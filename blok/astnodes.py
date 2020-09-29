@@ -200,12 +200,13 @@ class VarDecl(AstNode):
     def __init__(self):
         super().__init__()
         self.ptr_depth = 0
+        self.stack_size = 1
         self.kind = None
         self.ident = None
         self.expr = None
 
     def attributes_tostr(self):
-        return f" ptr_depth=\"{self.ptr_depth}\""
+        return f" ptr_depth=\"{self.ptr_depth}\" stack_size=\"{self.stack_size}\""
 
     def content_tostr(self, indent):
         result = f"{' ' * (indent)}{self.kind}\n"

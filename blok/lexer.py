@@ -50,6 +50,8 @@ class Lexer:
         elif c == "}":      self.add_token(TokenKind.CURLY_BRAC_RIGHT)
         elif c == "(":      self.add_token(TokenKind.ROUND_BRAC_LEFT)
         elif c == ")":      self.add_token(TokenKind.ROUND_BRAC_RIGHT)
+        elif c == "[":      self.add_token(TokenKind.SQUARE_BRAC_LEFT)
+        elif c == "]":      self.add_token(TokenKind.SQUARE_BRAC_RIGHT)
         elif c == ";":      self.add_token(TokenKind.SEMICOLON)
         elif c == ",":      self.add_token(TokenKind.COMMA)
         elif c == ".":      self.try_read_pair(TokenKind.DOT, ".", TokenKind.TWO_DOT)

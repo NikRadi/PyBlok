@@ -56,3 +56,5 @@ class TokenKind(Enum):
     CURLY_BRAC_RIGHT    = 403
     ROUND_BRAC_LEFT     = 404
     ROUND_BRAC_RIGHT    = 405
+    SQUARE_BRAC_LEFT    = 404
+    SQUARE_BRAC_RIGHT   = 405
