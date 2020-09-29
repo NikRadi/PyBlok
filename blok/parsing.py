@@ -30,6 +30,8 @@ def get_precedence(op_kind):
        op_kind == TokenKind.GREATER_THAN_EQUAL: return 30
     if op_kind == TokenKind.TWO_EQUAL or \
        op_kind == TokenKind.EXMARK_EQUAL:       return 20
+    if op_kind == TokenKind.TWO_AMPERSAND or \
+       op_kind == TokenKind.TWO_VERT_LINE:      return 10
     return -1
 
 

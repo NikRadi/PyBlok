@@ -175,7 +175,9 @@ class TypeChecker:
              op_kind == TokenKind.LESS_THAN or \
              op_kind == TokenKind.LESS_THAN_EQUAL or \
              op_kind == TokenKind.GREATER_THAN or \
-             op_kind == TokenKind.GREATER_THAN_EQUAL:
+             op_kind == TokenKind.GREATER_THAN_EQUAL or \
+             op_kind == TokenKind.TWO_AMPERSAND or \
+             op_kind == TokenKind.TWO_VERT_LINE:
             binaryop.eval_kind = EvalKind.BOOL
         else: assert False, f"\n{binaryop}"
 

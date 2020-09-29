@@ -352,8 +352,9 @@ class CodeGenByteCode:
         elif binaryop.op.kind == TokenKind.GREATER_THAN_EQUAL:
             jump_kind = ByteCode.JUMP_IF_LESS_THAN
         else:
-            assert False
+            assert False, f"{binaryop}"
 
+        # NOTE: Label is not added here but by parent
         self.bytecode += [(jump_kind,)]
 
     def gen_bytecode_ptr_unaryop(self, unaryop):
