@@ -265,7 +265,24 @@ class CodeGenByteCode:
         self.bytecode += [(ByteCode.STORE_VALUE_AT_IDX,)]
 
     def gen_bytecode_vardecl(self, vardecl):
+        is_array = vardecl.stack_size > 1
+        if is_array:
+            self.localvar_idx += vardecl.stack_size - 1
+
         idx = self.add_var(vardecl.ident.value)
+        if is_array:
+            first_elem_idx = idx - (vardecl.stack_size - 1)
+            self.bytecode += [
+                (ByteCode.LOAD_BASE_POINTER,),
+                (ByteCode.PUSH_CONST, first_elem_idx),
+                (ByteCode.BINARYOP_ADD,),
+
+                (ByteCode.LOAD_BASE_POINTER,),
+                (ByteCode.PUSH_CONST, idx),
+                (ByteCode.BINARYOP_ADD,),
+                (ByteCode.STORE_VALUE_AT_IDX,)
+            ]
+
         if vardecl.expr != None:
             self.gen_bytecode_expr(vardecl.expr)
             self.bytecode += [
@@ -274,6 +291,7 @@ class CodeGenByteCode:
                 (ByteCode.BINARYOP_ADD,),
                 (ByteCode.STORE_VALUE_AT_IDX,)
             ]
+
 
     def gen_bytecode_expr(self, expr):
         if isinstance(expr, Literal):

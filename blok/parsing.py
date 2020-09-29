@@ -107,7 +107,8 @@ def parse_block(lexer, parent):
                  peek1.kind == TokenKind.PLUS_EQUAL or \
                  peek1.kind == TokenKind.MINUS_EQUAL or \
                  peek1.kind == TokenKind.STAR_EQUAL or \
-                 peek1.kind == TokenKind.SLASH_EQUAL:
+                 peek1.kind == TokenKind.SLASH_EQUAL or \
+                 peek1.kind == TokenKind.SQUARE_BRAC_LEFT:
                 block.statements.append(parse_varassign(lexer))
             else: assert False, f"\n{peek}"
         elif peek.kind == TokenKind.LESS_THAN:
@@ -214,6 +215,12 @@ def parse_varassign(lexer):
 
     varassign.ident = lexer.peek_token()
     lexer.eat_next_token()
+    if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
+        lexer.eat_next_token() # [
+        idx = lexer.peek_token()
+        lexer.eat_next_token()
+        lexer.eat_next_token() # ]
+
     varassign.op = lexer.peek_token()
     lexer.eat_next_token()
     varassign.expr = parse_expr(lexer)
@@ -231,7 +238,7 @@ def parse_vardecl(lexer):
             lexer.eat_next_token()
     elif lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
         lexer.eat_next_token() # [
-        vardecl.stack_size = int(lexer.peek_token().value)
+        vardecl.stack_size = int(lexer.peek_token().value) + 1
         lexer.eat_next_token()
         lexer.eat_next_token() # ]
 
