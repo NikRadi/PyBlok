@@ -9,6 +9,7 @@ from blok.astnodes import (
     ForLoop,
     WhileLoop,
     BreakStatement,
+    ContinueStatement,
     IfStatement,
     VarAssign,
     VarDecl,
@@ -122,6 +123,8 @@ def parse_block(lexer, parent):
             block.statements.append(parse_return_statement(lexer))
         elif peek.kind == TokenKind.BREAK:
             block.statements.append(parse_break_statement(lexer, block))
+        elif peek.kind == TokenKind.CONTINUE:
+            block.statements.append(parse_continue_statement(lexer, block))
         else: assert False, f"\n{lexer.peek_token()}"
 
     lexer.eat_next_token() # }
@@ -165,6 +168,22 @@ def parse_break_statement(lexer, parent):
         break_statement.parent_loop = break_statement.parent_loop.parent
 
     return break_statement
+
+
+def parse_continue_statement(lexer, parent):
+    continue_statement = ContinueStatement()
+    continue_statement.parent = parent
+    lexer.eat_next_token() # continue
+    lexer.eat_next_token() # ;
+    continue_statement.parent_loop = parent
+    while True:
+        if isinstance(continue_statement.parent_loop, ForLoop) or \
+           isinstance(continue_statement.parent_loop, WhileLoop):
+            break
+
+        continue_statement.parent_loop = continue_statement.parent_loop.parent
+
+    return continue_statement
 
 
 def parse_if_statement(lexer, parent):

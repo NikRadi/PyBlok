@@ -11,6 +11,7 @@ from blok.astnodes import (
     ForLoop,
     WhileLoop,
     BreakStatement,
+    ContinueStatement,
     IfStatement,
     VarAssign,
     VarDecl,
@@ -163,6 +164,8 @@ class CodeGenByteCode:
                 self.gen_bytecode_return_statement(statement)
             elif isinstance(statement, BreakStatement):
                 self.gen_bytecode_break_statement(statement)
+            elif isinstance(statement, ContinueStatement):
+                self.gen_bytecode_continue_statement(statement)
             else: assert False
 
         self.localvar_to_idx = vars_before
@@ -189,7 +192,9 @@ class CodeGenByteCode:
             (ByteCode.JUMP_IF_LESS_THAN, for_loop.end_label)
         ]
 
+        for_loop.step_label = self.get_new_label()
         self.gen_bytecode_block(for_loop.block)
+        self.bytecode += [(ByteCode.LABEL, for_loop.step_label)]
         self.gen_bytecode_expr(for_loop.step)
         self.bytecode += [
             (ByteCode.LOAD_BASE_POINTER,),
@@ -219,6 +224,9 @@ class CodeGenByteCode:
 
     def gen_bytecode_break_statement(self, break_statement):
         self.bytecode += [(ByteCode.JUMP, break_statement.parent_loop.end_label)]
+
+    def gen_bytecode_continue_statement(self, continue_statement):
+        self.bytecode += [(ByteCode.JUMP, continue_statement.parent_loop.step_label)]
 
     def gen_bytecode_if_statement(self, if_statement):
         self.gen_bytecode_expr(if_statement.condition)

@@ -120,6 +120,7 @@ class ForLoop(Loop):
         self.stop = None
         self.step = None
         self.block = None
+        self.step_label = None
 
     def content_tostr(self, indent):
         result = f"{' ' * (indent)}{self.var_ident}\n"
@@ -142,6 +143,11 @@ class WhileLoop(Loop):
 
 
 class BreakStatement(AstNode):
+    def __init__(self):
+        self.parent_loop = None
+
+
+class ContinueStatement(AstNode):
     def __init__(self):
         self.parent_loop = None
 
