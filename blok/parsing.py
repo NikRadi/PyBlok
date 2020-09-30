@@ -218,6 +218,8 @@ def parse_varassign(lexer):
     if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
         lexer.eat_next_token() # [
         idx = lexer.peek_token()
+        varassign.deref_depth = 1
+        varassign.arr_idx = int(idx.value)
         lexer.eat_next_token()
         lexer.eat_next_token() # ]
 

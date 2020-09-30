@@ -182,12 +182,13 @@ class VarAssign(AstNode):
     def __init__(self):
         super().__init__()
         self.deref_depth = 0
+        self.arr_idx = None
         self.op = None
         self.ident = None
         self.expr = None
 
     def attributes_tostr(self):
-        return f" deref_depth=\"{self.deref_depth}\""
+        return f" deref_depth=\"{self.deref_depth}\" arr_idx=\"{self.arr_idx}\""
 
     def content_tostr(self, indent):
         result = f"{' ' * (indent)}{self.ident}\n"

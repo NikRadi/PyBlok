@@ -257,10 +257,17 @@ class CodeGenByteCode:
             (ByteCode.BINARYOP_ADD,),
         ]
 
-        deref_depth = varassign.deref_depth
-        while deref_depth > 0:
-            self.bytecode += [(ByteCode.LOAD_VALUE_AT_IDX,)]
-            deref_depth -= 1
+        if varassign.arr_idx != None:
+            self.bytecode += [
+                (ByteCode.LOAD_VALUE_AT_IDX,),
+                (ByteCode.PUSH_CONST, varassign.arr_idx),
+                (ByteCode.BINARYOP_ADD,),
+            ]
+        elif varassign.deref_depth > 0:
+            deref_depth = varassign.deref_depth
+            while deref_depth > 0:
+                self.bytecode += [(ByteCode.LOAD_VALUE_AT_IDX,)]
+                deref_depth -= 1
 
         self.bytecode += [(ByteCode.STORE_VALUE_AT_IDX,)]
 
@@ -282,8 +289,7 @@ class CodeGenByteCode:
                 (ByteCode.BINARYOP_ADD,),
                 (ByteCode.STORE_VALUE_AT_IDX,)
             ]
-
-        if vardecl.expr != None:
+        elif vardecl.expr != None:
             self.gen_bytecode_expr(vardecl.expr)
             self.bytecode += [
                 (ByteCode.LOAD_BASE_POINTER,),
