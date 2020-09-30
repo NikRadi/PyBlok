@@ -338,6 +338,13 @@ class CodeGenByteCode:
                 (ByteCode.BINARYOP_ADD,),
                 (ByteCode.LOAD_VALUE_AT_IDX,)
             ]
+
+            if literal.arr_idx != None:
+                self.bytecode += [
+                    (ByteCode.PUSH_CONST, literal.arr_idx),
+                    (ByteCode.BINARYOP_ADD,),
+                    (ByteCode.LOAD_VALUE_AT_IDX,),
+                ]
         elif literal.token.kind == TokenKind.INT_LITERAL:
             self.bytecode += [(ByteCode.PUSH_CONST, literal.token.value)]
         else: assert False

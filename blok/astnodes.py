@@ -222,6 +222,10 @@ class Literal(Expr):
     def __init__(self):
         super().__init__()
         self.token = None
+        self.arr_idx = None
+
+    def attributes_tostr(self):
+        return f" arr_idx=\"{self.arr_idx}\""
 
     def content_tostr(self, indent):
         return f"{' ' * indent}{self.token}\n"

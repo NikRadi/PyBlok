@@ -299,12 +299,24 @@ def parse_literal(lexer):
         literal = Literal()
         literal.token = token
         lexer.eat_next_token()
+        if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
+            lexer.eat_next_token() # [
+            literal.arr_idx = int(lexer.peek_token().value)
+            lexer.eat_next_token()
+            lexer.eat_next_token() # ]
+
         return literal
 
     if token.kind == TokenKind.IDENT:
         literal = Literal()
         literal.token = token
         lexer.eat_next_token()
+        if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
+            lexer.eat_next_token() # [
+            literal.arr_idx = int(lexer.peek_token().value)
+            lexer.eat_next_token()
+            lexer.eat_next_token() # ]
+
         return literal
 
     assert False, f"\n{token}"
