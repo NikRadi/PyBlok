@@ -209,10 +209,6 @@ def parse_if_statement(lexer, parent):
 
 def parse_varassign(lexer):
     varassign = VarAssign()
-    while lexer.peek_token().kind == TokenKind.LESS_THAN:
-        varassign.deref_depth += 1
-        lexer.eat_next_token()
-
     varassign.ident = lexer.peek_token()
     lexer.eat_next_token()
     if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
@@ -222,6 +218,10 @@ def parse_varassign(lexer):
         varassign.arr_idx = int(idx.value)
         lexer.eat_next_token()
         lexer.eat_next_token() # ]
+    elif lexer.peek_token().kind == TokenKind.LESS_THAN:
+        while lexer.peek_token().kind == TokenKind.LESS_THAN:
+            varassign.deref_depth += 1
+            lexer.eat_next_token()
 
     varassign.op = lexer.peek_token()
     lexer.eat_next_token()
