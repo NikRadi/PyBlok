@@ -2,6 +2,7 @@ import blok.astnodes
 from blok.token import Token, TokenKind
 from blok.astnodes import (
     BlkProgram,
+    Struct,
     ReturnStatement,
     FuncCall,
     FuncDecl,
@@ -37,10 +38,31 @@ def get_precedence(op_kind):
 
 def parse_blkprogram(lexer):
     blkprogram = BlkProgram()
-    while lexer.peek_token().kind != TokenKind.EOF:
-        blkprogram.funcdecls.append(parse_funcdecl(lexer))
+    peek = lexer.peek_token().kind
+    while peek != TokenKind.EOF:
+        if peek == TokenKind.STRUCT:
+            blkprogram.structs.append(parse_struct(lexer))
+        elif peek == TokenKind.VOID or peek == TokenKind.INT:
+            blkprogram.funcdecls.append(parse_funcdecl(lexer))
+        else: assert False
+
+        peek = lexer.peek_token().kind
 
     return blkprogram
+
+
+def parse_struct(lexer):
+    struct = Struct()
+    lexer.eat_next_token()
+    struct.ident = lexer.peek_token()
+    lexer.eat_next_token()
+    lexer.eat_next_token() # {
+    print(lexer.peek_token())
+    while lexer.peek_token().kind != TokenKind.CURLY_BRAC_RIGHT:
+        struct.vardecls.append(parse_vardecl(lexer))
+
+    lexer.eat_next_token() # }
+    return struct
 
 
 def parse_return_statement(lexer):

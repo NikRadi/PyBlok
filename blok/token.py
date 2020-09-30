@@ -49,6 +49,7 @@ class TokenKind(Enum):
     RETURN              = 307
     INT                 = 308
     VOID                = 309
+    STRUCT              = 310
     # Separators
     SEMICOLON           = 400
     COMMA               = 401

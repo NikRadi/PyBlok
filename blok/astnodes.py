@@ -43,12 +43,30 @@ class Loop(AstNode):
 class BlkProgram(AstNode):
     def __init__(self):
         super().__init__()
+        self.structs = []
         self.funcdecls = []
 
     def content_tostr(self, indent):
         result = ""
+        for struct in self.structs:
+            result += struct.tostr(indent)
+
         for funcdecl in self.funcdecls:
             result += funcdecl.tostr(indent)
+
+        return result
+
+
+class Struct(AstNode):
+    def __init__(self):
+        super().__init__()
+        self.ident = None
+        self.vardecls = []
+
+    def content_tostr(self, indent):
+        result = f"{' ' * indent}{self.ident}\n"
+        for vardecl in self.vardecls:
+            result += vardecl.tostr(indent)
 
         return result
 

@@ -21,6 +21,7 @@ from blok.astnodes import (
 
 class TypeChecker:
     def __init__(self, ast):
+        print(ast)
         self.funcident_to_evalkind = {}
         self.current_func = None
         self.typecheck_blkprogram(ast)
@@ -32,7 +33,7 @@ class TypeChecker:
                 self.funcident_to_evalkind[ident] = EvalKind.VOID
             elif funcdecl.return_token.kind == TokenKind.INT:
                 self.funcident_to_evalkind[ident] = EvalKind.INT
-            else: assert False
+            else: assert False, f"\n{ident}"
 
         for funcdecl in blkprogram.funcdecls:
             self.typecheck_funcdecl(funcdecl)

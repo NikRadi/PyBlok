@@ -171,4 +171,5 @@ class Lexer:
         elif ident == "break":    self.add_token(TokenKind.BREAK)
         elif ident == "continue": self.add_token(TokenKind.CONTINUE)
         elif ident == "int":      self.add_token(TokenKind.INT)
+        elif ident == "struct":   self.add_token(TokenKind.STRUCT)
         else:                     self.add_token(TokenKind.IDENT, ident)
