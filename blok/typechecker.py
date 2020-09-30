@@ -23,8 +23,10 @@ class TypeChecker:
     def __init__(self, ast):
         print(ast)
         self.funcident_to_evalkind = {}
+        self.structident_to_stacksize = {}
         self.current_func = None
         self.typecheck_blkprogram(ast)
+        print(ast)
 
     def typecheck_blkprogram(self, blkprogram):
         for funcdecl in blkprogram.funcdecls:
@@ -35,8 +37,15 @@ class TypeChecker:
                 self.funcident_to_evalkind[ident] = EvalKind.INT
             else: assert False, f"\n{ident}"
 
+        for struct in blkprogram.structs:
+            self.typecheck_struct(struct)
+
         for funcdecl in blkprogram.funcdecls:
             self.typecheck_funcdecl(funcdecl)
+
+    def typecheck_struct(self, struct):
+        ident = struct.ident.value
+        self.structident_to_stacksize[ident] = struct.stack_size
 
     def typecheck_return_statement(self, return_statement):
         if return_statement.expr != None:
@@ -137,6 +146,10 @@ class TypeChecker:
             varassign.expr = binaryop
 
     def typecheck_vardecl(self, vardecl):
+        if vardecl.kind.kind == TokenKind.IDENT:
+            stack_size = self.structident_to_stacksize[vardecl.kind.value]
+            vardecl.stack_size = stack_size
+
         self.current_func.stack_size += vardecl.stack_size
         if vardecl.expr != None:
             self.typecheck_expr(vardecl.expr)

@@ -54,7 +54,6 @@ class ByteCode(Enum):
 
 class CodeGenByteCode:
     def __init__(self, ast):
-        print(ast)
         self.ast = ast
         self.localvar_idx = 0
         self.bytecode = []
@@ -278,6 +277,10 @@ class CodeGenByteCode:
 
         idx = self.add_var(vardecl.ident.value)
         if is_array:
+            # TODO: If vardecl is a struct containing an array
+            #       then first_elem_idx will point to where
+            #       the variable-struct begins and not where
+            #       the array in the struct begins
             first_elem_idx = idx - (vardecl.stack_size - 1)
             self.bytecode += [
                 (ByteCode.LOAD_BASE_POINTER,),

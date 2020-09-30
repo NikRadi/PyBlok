@@ -57,9 +57,11 @@ def parse_struct(lexer):
     struct.ident = lexer.peek_token()
     lexer.eat_next_token()
     lexer.eat_next_token() # {
-    print(lexer.peek_token())
     while lexer.peek_token().kind != TokenKind.CURLY_BRAC_RIGHT:
         struct.vardecls.append(parse_vardecl(lexer))
+
+    for vardecl in struct.vardecls:
+        struct.stack_size += vardecl.stack_size
 
     lexer.eat_next_token() # }
     return struct
@@ -132,7 +134,8 @@ def parse_block(lexer, parent):
                  peek1.kind == TokenKind.SLASH_EQUAL or \
                  peek1.kind == TokenKind.SQUARE_BRAC_LEFT:
                 block.statements.append(parse_varassign(lexer))
-            else: assert False, f"\n{peek}"
+            else: # It is a struct-variable
+                block.statements.append(parse_vardecl(lexer))
         elif peek.kind == TokenKind.LESS_THAN:
             block.statements.append(parse_varassign(lexer))
         elif peek.kind == TokenKind.INT:

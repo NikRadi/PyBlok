@@ -60,8 +60,12 @@ class BlkProgram(AstNode):
 class Struct(AstNode):
     def __init__(self):
         super().__init__()
+        self.stack_size = 0
         self.ident = None
         self.vardecls = []
+
+    def attributes_tostr(self):
+        return f" stack_size=\"{self.stack_size}\""
 
     def content_tostr(self, indent):
         result = f"{' ' * indent}{self.ident}\n"
