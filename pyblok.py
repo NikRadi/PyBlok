@@ -1,6 +1,5 @@
 from blok.codegen_bytecode import CodeGenByteCode
 from blok.blok_vm import interp_bytecode
-from blok.bytecode_opt import optimize_bytecode
 from blok.error import errors
 from blok.lexer import Lexer
 from blok.parsing import parse_blkprogram
@@ -27,11 +26,6 @@ def main():
         return
 
     bytecode = CodeGenByteCode(ast).gen_bytecode()
-    for i, j in enumerate(bytecode): print(i, j)
-    print()
-    bytecode = optimize_bytecode(bytecode)
-    for i, j in enumerate(bytecode): print(i, j)
-    print()
     interp_bytecode(bytecode)
 
 

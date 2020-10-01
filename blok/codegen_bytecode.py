@@ -105,8 +105,50 @@ class CodeGenByteCode:
         ]
 
         self.gen_bytecode_blkfile()
+        for i, j in enumerate(self.bytecode): print(i, j)
+        len_bfr = len(self.bytecode)
+        self.optimize_bytecode()
+        for i, j in enumerate(self.bytecode): print(i, j)
+        print()
+        len_aft = len(self.bytecode)
+        print(f"Optimized {len_bfr - len_aft}")
+        print()
         self.replace_labels_by_idx()
         return self.bytecode
+
+    def optimize_bytecode(self):
+        print("-" * 20)
+        print("-" * 20)
+        idx = 0
+        while True:
+            if idx >= len(self.bytecode):
+                break
+
+            code = self.bytecode[idx]
+            if code[0] == ByteCode.BINARYOP_ADD:
+                fst = self.bytecode[idx - 1]
+                snd = self.bytecode[idx - 2]
+                if fst[0] == ByteCode.PUSH_CONST and fst[1] == 0:
+                    del self.bytecode[idx]
+                    del self.bytecode[idx - 1]
+                    idx -= 1
+                    continue
+                elif snd[0] == ByteCode.PUSH_CONST and snd[1] == 0:
+                    del self.bytecode[idx]
+                    del self.bytecode[idx - 2]
+                    idx -= 1
+                    continue
+            elif code[0] == ByteCode.INCR_STACK_BY_CONST:
+                if code[1] == 0:
+                    del self.bytecode[idx]
+                    continue
+            else:
+                print(code)
+
+            idx += 1
+
+        print("-" * 20)
+        print("-" * 20)
 
     def gen_bytecode_blkfile(self):
         for funcdecl in self.ast.funcdecls:
