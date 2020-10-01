@@ -285,13 +285,24 @@ def parse_literal(lexer):
     token = lexer.peek_token()
     if token.kind == TokenKind.PLUS or \
        token.kind == TokenKind.MINUS or \
-       token.kind == TokenKind.LESS_THAN or \
-       token.kind == TokenKind.GREATER_THAN:
+       token.kind == TokenKind.LESS_THAN:
         lexer.eat_next_token()
         unaryop = UnaryOp()
         unaryop.op = token
         unaryop.expr = parse_literal(lexer)
         return unaryop
+
+    if token.kind == TokenKind.GREATER_THAN:
+        lexer.eat_next_token()
+        unaryop = UnaryOp()
+        unaryop.op = token
+        if lexer.peek_token(1).kind == TokenKind.DOT:
+            unaryop.expr = parse_expr(lexer)
+        else:
+            unaryop.expr = parse_literal(lexer)
+
+        return unaryop
+
 
     if token.kind == TokenKind.ROUND_BRAC_LEFT:
         lexer.eat_next_token() # (

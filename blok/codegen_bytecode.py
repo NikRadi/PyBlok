@@ -449,23 +449,62 @@ class CodeGenByteCode:
         elif binaryop.op.kind == TokenKind.GREATER_THAN_EQUAL:
             jump_kind = ByteCode.JUMP_IF_LESS_THAN
         else:
-            assert False, f"{binaryop}"
+            assert False, f"\n{binaryop}"
 
         # Label is not added here but by parent
         self.bytecode += [(jump_kind,)]
 
     def gen_bytecode_ptr_unaryop(self, unaryop):
-        assert isinstance(unaryop.expr, Literal)
-        varidx = self.localvar_to_idx[unaryop.expr.token.value]
-        self.bytecode += [
-            (ByteCode.LOAD_BASE_POINTER,),
-            (ByteCode.PUSH_CONST, varidx),
-            (ByteCode.BINARYOP_ADD,)
-        ]
+        # var_ident = None
+        # var_offset = None
+        # if isinstance(unaryop.expr, Literal):
+        #     var_ident = unaryop.expr.token.value
+        #     var_offset = unaryop.expr.offset
+        # elif isinstance(unaryop.expr, BinaryOp):
+        #     var_ident = unaryop.expr.lhs.token.value
+        #     var_offset = unaryop.expr.rhs.offset
+        # else: assert False, f"\n{unaryop}"
 
-        if unaryop.expr.offset != None:
+        # var_idx = self.localvar_to_idx[var_ident]
+        # self.bytecode += [
+        #     (ByteCode.LOAD_BASE_POINTER,),
+        #     (ByteCode.PUSH_CONST, var_idx),
+        #     (ByteCode.BINARYOP_ADD,)
+        # ]
+
+        # if var_offset != None:
+        #     self.bytecode += [
+        #         (ByteCode.LOAD_VALUE_AT_IDX,),
+        #         (ByteCode.PUSH_CONST, var_offset),
+        #         (ByteCode.BINARYOP_ADD,)
+        #     ]
+
+
+        if isinstance(unaryop.expr, Literal):
+            var_ident = unaryop.expr.token.value
+            var_offset = unaryop.expr.offset
+            var_idx = self.localvar_to_idx[var_ident]
             self.bytecode += [
-                (ByteCode.LOAD_VALUE_AT_IDX,),
-                (ByteCode.PUSH_CONST, unaryop.expr.offset),
+                (ByteCode.LOAD_BASE_POINTER,),
+                (ByteCode.PUSH_CONST, var_idx),
                 (ByteCode.BINARYOP_ADD,)
             ]
+
+            if var_offset != None:
+                self.bytecode += [
+                    (ByteCode.LOAD_VALUE_AT_IDX,),
+                    (ByteCode.PUSH_CONST, var_offset),
+                    (ByteCode.BINARYOP_ADD,)
+                ]
+        elif isinstance(unaryop.expr, BinaryOp):
+            var_ident = unaryop.expr.lhs.token.value
+            var_offset = unaryop.expr.rhs.offset
+            var_idx = self.localvar_to_idx[var_ident]
+            self.bytecode += [
+                (ByteCode.LOAD_BASE_POINTER,),
+                (ByteCode.PUSH_CONST, var_idx),
+                (ByteCode.BINARYOP_ADD,),
+                (ByteCode.PUSH_CONST, var_offset),
+                (ByteCode.BINARYOP_ADD,)
+            ]
+        else: assert False, f"\n{unaryop}"

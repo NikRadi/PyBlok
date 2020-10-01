@@ -182,6 +182,7 @@ class TypeChecker:
     def typecheck_binaryop(self, binaryop):
         op_kind = binaryop.op.kind
         if op_kind == TokenKind.DOT:
+            print(binaryop)
             binaryop.eval_kind = EvalKind.INT
             var_name = binaryop.lhs.token.value
             struct_ident = self.varident_to_evalkind[var_name]
