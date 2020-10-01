@@ -21,12 +21,10 @@ from blok.astnodes import (
 
 class TypeChecker:
     def __init__(self, ast):
-        print(ast)
         self.funcident_to_evalkind = {}
         self.structident_to_stacksize = {}
         self.current_func = None
         self.typecheck_blkprogram(ast)
-        print(ast)
 
     def typecheck_blkprogram(self, blkprogram):
         for funcdecl in blkprogram.funcdecls:

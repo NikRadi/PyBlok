@@ -105,11 +105,7 @@ class CodeGenByteCode:
         ]
 
         self.gen_bytecode_blkfile()
-        for i, j in enumerate(self.bytecode): print(i, j)
-        print()
         self.replace_labels_by_idx()
-        # for i, j in enumerate(self.bytecode): print(i, j)
-        # print()
         return self.bytecode
 
     def gen_bytecode_blkfile(self):
