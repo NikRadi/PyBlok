@@ -9,8 +9,8 @@ from blok.astnodes import (
     Block,
     ForLoop,
     WhileLoop,
-    BreakStatement,
-    ContinueStatement,
+    LoopControl,
+    LoopControlKind,
     IfStatement,
     VarAssign,
     VarDecl,
@@ -148,10 +148,9 @@ def parse_block(lexer, parent):
             block.statements.append(parse_for_loop(lexer))
         elif peek.kind == TokenKind.RETURN:
             block.statements.append(parse_return_statement(lexer))
-        elif peek.kind == TokenKind.BREAK:
-            block.statements.append(parse_break_statement(lexer, block))
-        elif peek.kind == TokenKind.CONTINUE:
-            block.statements.append(parse_continue_statement(lexer, block))
+        elif peek.kind == TokenKind.BREAK or \
+             peek.kind == TokenKind.CONTINUE:
+            block.statements.append(parse_loopcontrol(lexer, block))
         else: assert False, f"\n{lexer.peek_token()}"
 
     lexer.eat_next_token() # }
@@ -181,36 +180,26 @@ def parse_while_loop(lexer):
     return while_loop
 
 
-def parse_break_statement(lexer, parent):
-    break_statement = BreakStatement()
-    break_statement.parent = parent
-    lexer.eat_next_token() # break
+def parse_loopcontrol(lexer, parent):
+    loopcontrol = LoopControl()
+    loopcontrol.parent = parent
+    if lexer.peek_token().kind == TokenKind.BREAK:
+        loopcontrol.kind = LoopControlKind.BREAK
+    elif lexer.peek_token().kind == TokenKind.CONTINUE:
+        loopcontrol.kind = LoopControlKind.CONTINUE
+    else: assert False # TODO: Is this even possible?
+
+    lexer.eat_next_token()
     lexer.eat_next_token() # ;
-    break_statement.parent_loop = parent
+    loopcontrol.parent_loop = parent
     while True:
-        if isinstance(break_statement.parent_loop, ForLoop) or \
-           isinstance(break_statement.parent_loop, WhileLoop):
+        if isinstance(loopcontrol.parent_loop, ForLoop) or \
+           isinstance(loopcontrol.parent_loop, WhileLoop):
             break
 
-        break_statement.parent_loop = break_statement.parent_loop.parent
+        loopcontrol.parent_loop = loopcontrol.parent_loop.parent
 
-    return break_statement
-
-
-def parse_continue_statement(lexer, parent):
-    continue_statement = ContinueStatement()
-    continue_statement.parent = parent
-    lexer.eat_next_token() # continue
-    lexer.eat_next_token() # ;
-    continue_statement.parent_loop = parent
-    while True:
-        if isinstance(continue_statement.parent_loop, ForLoop) or \
-           isinstance(continue_statement.parent_loop, WhileLoop):
-            break
-
-        continue_statement.parent_loop = continue_statement.parent_loop.parent
-
-    return continue_statement
+    return loopcontrol
 
 
 def parse_if_statement(lexer, parent):

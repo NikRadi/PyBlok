@@ -10,8 +10,8 @@ from blok.astnodes import (
     Block,
     ForLoop,
     WhileLoop,
-    BreakStatement,
-    ContinueStatement,
+    LoopControl,
+    LoopControlKind,
     IfStatement,
     VarAssign,
     VarDecl,
@@ -162,10 +162,8 @@ class CodeGenByteCode:
                 self.gen_bytecode_funccall(statement)
             elif isinstance(statement, ReturnStatement):
                 self.gen_bytecode_return_statement(statement)
-            elif isinstance(statement, BreakStatement):
-                self.gen_bytecode_break_statement(statement)
-            elif isinstance(statement, ContinueStatement):
-                self.gen_bytecode_continue_statement(statement)
+            elif isinstance(statement, LoopControl):
+                self.gen_bytecode_loopcontrol(statement)
             else: assert False
 
         self.localvar_to_idx = vars_before
@@ -222,11 +220,11 @@ class CodeGenByteCode:
         self.bytecode += [(ByteCode.JUMP, while_loop.start_label)]
         self.bytecode += [(ByteCode.LABEL, while_loop.end_label)]
 
-    def gen_bytecode_break_statement(self, break_statement):
-        self.bytecode += [(ByteCode.JUMP, break_statement.parent_loop.end_label)]
-
-    def gen_bytecode_continue_statement(self, continue_statement):
-        self.bytecode += [(ByteCode.JUMP, continue_statement.parent_loop.step_label)]
+    def gen_bytecode_loopcontrol(self, loopcontrol):
+        if loopcontrol.kind == LoopControlKind.BREAK:
+            self.bytecode += [(ByteCode.JUMP, loopcontrol.parent_loop.end_label)]
+        elif loopcontrol.kind == LoopControlKind.CONTINUE:
+            self.bytecode += [(ByteCode.JUMP, loopcontrol.parent_loop.step_label)]
 
     def gen_bytecode_if_statement(self, if_statement):
         self.gen_bytecode_expr(if_statement.condition)

@@ -1,3 +1,4 @@
+from enum import Enum
 
 
 class AstNode:
@@ -172,16 +173,16 @@ class WhileLoop(Loop):
         return result
 
 
-class BreakStatement(AstNode):
+class LoopControl(AstNode):
     def __init__(self):
         super().__init__()
         self.parent_loop = None
+        self.kind = None
 
 
-class ContinueStatement(AstNode):
-    def __init__(self):
-        super().__init__()
-        self.parent_loop = None
+class LoopControlKind(Enum):
+    BREAK    = 0
+    CONTINUE = 1
 
 
 class IfStatement(AstNode):
