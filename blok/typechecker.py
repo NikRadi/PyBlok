@@ -71,7 +71,10 @@ class TypeChecker:
         for statement in block.statements:
             if isinstance(statement, VarDecl):
                 self.typecheck_vardecl(statement)
-            elif isinstance(statement, VarAssign):
+            # elif isinstance(statement, VarAssign):
+            #     self.typecheck_varassign(statement)
+            # TODO: Is it only varassign that is a BinaryOp statement?
+            elif isinstance(statement, BinaryOp):
                 self.typecheck_varassign(statement)
             elif isinstance(statement, IfStatement):
                 self.typecheck_if_statement(statement)
@@ -85,7 +88,7 @@ class TypeChecker:
                 self.typecheck_return_statement(statement)
             elif isinstance(statement, LoopControl):
                 self.typecheck_loopcontrol(statement)
-            else: assert False
+            else: assert False, f"\n{statement}"
 
     def typecheck_for_loop(self, for_loop):
         self.current_func.stack_size += 1
@@ -110,36 +113,38 @@ class TypeChecker:
             self.typecheck_block(if_statement.else_block)
 
     def typecheck_varassign(self, varassign):
-        self.typecheck_expr(varassign.expr)
-        if varassign.op.kind != TokenKind.EQUAL:
-            binaryop = BinaryOp()
-            binaryop.eval_kind = EvalKind.INT
-            binaryop.lhs = Literal()
-            binaryop.lhs.token = varassign.ident
-            deref_depth = varassign.deref_depth
-            while deref_depth > 0:
-                unaryop = UnaryOp()
-                unaryop.eval_kind = EvalKind.INT
-                unaryop.op = Token(TokenKind.LESS_THAN, "", -1)
-                unaryop.expr = binaryop.lhs
+        self.typecheck_expr(varassign.rhs)
 
-                binaryop.lhs = unaryop
-                deref_depth -= 1
+        # self.typecheck_expr(varassign.expr)
+        # if varassign.op.kind != TokenKind.EQUAL:
+        #     binaryop = BinaryOp()
+        #     binaryop.eval_kind = EvalKind.INT
+        #     binaryop.lhs = Literal()
+        #     binaryop.lhs.token = varassign.ident
+        #     deref_depth = varassign.deref_depth
+        #     while deref_depth > 0:
+        #         unaryop = UnaryOp()
+        #         unaryop.eval_kind = EvalKind.INT
+        #         unaryop.op = Token(TokenKind.LESS_THAN, "", -1)
+        #         unaryop.expr = binaryop.lhs
 
-            binaryop.rhs = varassign.expr
-            if varassign.op.kind == TokenKind.PLUS_EQUAL:
-                tokenkind = TokenKind.PLUS
-            elif varassign.op.kind == TokenKind.MINUS_EQUAL:
-                tokenkind = TokenKind.MINUS
-            elif varassign.op.kind == TokenKind.STAR_EQUAL:
-                tokenkind = TokenKind.STAR
-            elif varassign.op.kind == TokenKind.SLASH_EQUAL:
-                tokenkind = TokenKind.SLASH
-            else: assert False # TODO: Is this case even possible?
+        #         binaryop.lhs = unaryop
+        #         deref_depth -= 1
 
-            binaryop.op = Token(tokenkind, "", -1)
-            varassign.op.kind = TokenKind.EQUAL
-            varassign.expr = binaryop
+        #     binaryop.rhs = varassign.expr
+        #     if varassign.op.kind == TokenKind.PLUS_EQUAL:
+        #         tokenkind = TokenKind.PLUS
+        #     elif varassign.op.kind == TokenKind.MINUS_EQUAL:
+        #         tokenkind = TokenKind.MINUS
+        #     elif varassign.op.kind == TokenKind.STAR_EQUAL:
+        #         tokenkind = TokenKind.STAR
+        #     elif varassign.op.kind == TokenKind.SLASH_EQUAL:
+        #         tokenkind = TokenKind.SLASH
+        #     else: assert False # TODO: Is this case even possible?
+
+        #     binaryop.op = Token(tokenkind, "", -1)
+        #     varassign.op.kind = TokenKind.EQUAL
+        #     varassign.expr = binaryop
 
     def typecheck_vardecl(self, vardecl):
         if vardecl.kind.kind == TokenKind.IDENT:

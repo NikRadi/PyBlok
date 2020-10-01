@@ -222,26 +222,34 @@ def parse_if_statement(lexer, parent):
 
 
 def parse_varassign(lexer):
-    varassign = VarAssign()
-    varassign.ident = lexer.peek_token()
-    lexer.eat_next_token()
-    if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
-        lexer.eat_next_token() # [
-        idx = lexer.peek_token()
-        varassign.deref_depth = 1
-        varassign.arr_idx = int(idx.value)
-        lexer.eat_next_token()
-        lexer.eat_next_token() # ]
-    elif lexer.peek_token().kind == TokenKind.LESS_THAN:
-        while lexer.peek_token().kind == TokenKind.LESS_THAN:
-            varassign.deref_depth += 1
-            lexer.eat_next_token()
-
+    varassign = BinaryOp()
+    varassign.lhs = parse_literal(lexer)
     varassign.op = lexer.peek_token()
     lexer.eat_next_token()
-    varassign.expr = parse_expr(lexer)
+    varassign.rhs = parse_expr(lexer)
     lexer.eat_next_token() # ;
     return varassign
+
+    # varassign = VarAssign()
+    # varassign.ident = lexer.peek_token()
+    # lexer.eat_next_token()
+    # if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
+    #     lexer.eat_next_token() # [
+    #     idx = lexer.peek_token()
+    #     varassign.deref_depth = 1
+    #     varassign.arr_idx = int(idx.value)
+    #     lexer.eat_next_token()
+    #     lexer.eat_next_token() # ]
+    # elif lexer.peek_token().kind == TokenKind.LESS_THAN:
+    #     while lexer.peek_token().kind == TokenKind.LESS_THAN:
+    #         varassign.deref_depth += 1
+    #         lexer.eat_next_token()
+
+    # varassign.op = lexer.peek_token()
+    # lexer.eat_next_token()
+    # varassign.expr = parse_expr(lexer)
+    # lexer.eat_next_token() # ;
+    # return varassign
 
 
 def parse_vardecl(lexer):

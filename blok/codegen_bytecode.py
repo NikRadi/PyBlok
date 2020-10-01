@@ -108,6 +108,7 @@ class CodeGenByteCode:
         for i, j in enumerate(self.bytecode): print(i, j)
         len_bfr = len(self.bytecode)
         self.optimize_bytecode()
+        print("-" * 20)
         for i, j in enumerate(self.bytecode): print(i, j)
         print()
         len_aft = len(self.bytecode)
@@ -117,8 +118,6 @@ class CodeGenByteCode:
         return self.bytecode
 
     def optimize_bytecode(self):
-        print("-" * 20)
-        print("-" * 20)
         idx = 0
         while True:
             if idx >= len(self.bytecode):
@@ -142,13 +141,8 @@ class CodeGenByteCode:
                 if code[1] == 0:
                     del self.bytecode[idx]
                     continue
-            else:
-                print(code)
 
             idx += 1
-
-        print("-" * 20)
-        print("-" * 20)
 
     def gen_bytecode_blkfile(self):
         for funcdecl in self.ast.funcdecls:
@@ -307,7 +301,7 @@ class CodeGenByteCode:
         self.bytecode += [(ByteCode.STORE_VALUE_AT_IDX,)]
 
     def gen_bytecode_vardecl(self, vardecl):
-        is_array = vardecl.stack_size > 1
+        is_array = vardecl.stack_size > 1 and vardecl.kind.kind != TokenKind.IDENT
         if is_array:
             self.localvar_idx += vardecl.stack_size - 1
 
