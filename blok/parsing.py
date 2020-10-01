@@ -12,7 +12,6 @@ from blok.astnodes import (
     LoopControl,
     LoopControlKind,
     IfStatement,
-    VarAssign,
     VarDecl,
     Literal,
     UnaryOp,
@@ -21,6 +20,7 @@ from blok.astnodes import (
 
 
 def get_precedence(op_kind):
+    if op_kind == TokenKind.DOT:                return 60
     if op_kind == TokenKind.STAR or \
        op_kind == TokenKind.SLASH:              return 50
     if op_kind == TokenKind.PLUS or \
@@ -103,12 +103,13 @@ def parse_funcdecl(lexer):
         if lexer.peek_token().kind == TokenKind.COMMA and len(funcdecl.params) > 0:
             lexer.eat_next_token()
 
-        vardecl = VarDecl()
-        vardecl.kind = lexer.peek_token()
-        lexer.eat_next_token()
-        vardecl.ident = lexer.peek_token()
-        lexer.eat_next_token()
-        funcdecl.params.append(vardecl)
+        funcdecl.params.append(parse_vardecl(lexer, False, False))
+        # vardecl = VarDecl()
+        # vardecl.kind = lexer.peek_token()
+        # lexer.eat_next_token()
+        # vardecl.ident = lexer.peek_token()
+        # lexer.eat_next_token()
+        # funcdecl.params.append(vardecl)
 
     lexer.eat_next_token() # )
     funcdecl.block = parse_block(lexer, funcdecl)
@@ -132,7 +133,8 @@ def parse_block(lexer, parent):
                  peek1.kind == TokenKind.MINUS_EQUAL or \
                  peek1.kind == TokenKind.STAR_EQUAL or \
                  peek1.kind == TokenKind.SLASH_EQUAL or \
-                 peek1.kind == TokenKind.SQUARE_BRAC_LEFT:
+                 peek1.kind == TokenKind.SQUARE_BRAC_LEFT or \
+                 peek1.kind == TokenKind.DOT:
                 block.statements.append(parse_varassign(lexer))
             else: # It is a struct-variable
                 block.statements.append(parse_vardecl(lexer))
@@ -223,36 +225,15 @@ def parse_if_statement(lexer, parent):
 
 def parse_varassign(lexer):
     varassign = BinaryOp()
-    varassign.lhs = parse_literal(lexer)
+    varassign.lhs = parse_expr(lexer)
     varassign.op = lexer.peek_token()
     lexer.eat_next_token()
     varassign.rhs = parse_expr(lexer)
     lexer.eat_next_token() # ;
     return varassign
 
-    # varassign = VarAssign()
-    # varassign.ident = lexer.peek_token()
-    # lexer.eat_next_token()
-    # if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
-    #     lexer.eat_next_token() # [
-    #     idx = lexer.peek_token()
-    #     varassign.deref_depth = 1
-    #     varassign.arr_idx = int(idx.value)
-    #     lexer.eat_next_token()
-    #     lexer.eat_next_token() # ]
-    # elif lexer.peek_token().kind == TokenKind.LESS_THAN:
-    #     while lexer.peek_token().kind == TokenKind.LESS_THAN:
-    #         varassign.deref_depth += 1
-    #         lexer.eat_next_token()
 
-    # varassign.op = lexer.peek_token()
-    # lexer.eat_next_token()
-    # varassign.expr = parse_expr(lexer)
-    # lexer.eat_next_token() # ;
-    # return varassign
-
-
-def parse_vardecl(lexer):
+def parse_vardecl(lexer, has_expr=True, eat_semicolon=True):
     vardecl = VarDecl()
     vardecl.kind = lexer.peek_token()
     lexer.eat_next_token()
@@ -268,13 +249,17 @@ def parse_vardecl(lexer):
 
     vardecl.ident = lexer.peek_token()
     lexer.eat_next_token()
-    if lexer.peek_token().kind == TokenKind.SEMICOLON:
-        lexer.eat_next_token() # ;
+    if lexer.peek_token().kind == TokenKind.SEMICOLON or not has_expr:
+        if eat_semicolon:
+            lexer.eat_next_token() # ;
+
         return vardecl
 
     lexer.eat_next_token() # =
     vardecl.expr = parse_expr(lexer)
-    lexer.eat_next_token() # ;
+    if eat_semicolon:
+        lexer.eat_next_token() # ;
+
     return vardecl
 
 
@@ -323,7 +308,7 @@ def parse_literal(lexer):
         lexer.eat_next_token()
         if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
             lexer.eat_next_token() # [
-            literal.arr_idx = int(lexer.peek_token().value)
+            literal.offset = int(lexer.peek_token().value)
             lexer.eat_next_token()
             lexer.eat_next_token() # ]
 
@@ -335,7 +320,7 @@ def parse_literal(lexer):
         lexer.eat_next_token()
         if lexer.peek_token().kind == TokenKind.SQUARE_BRAC_LEFT:
             lexer.eat_next_token() # [
-            literal.arr_idx = int(lexer.peek_token().value)
+            literal.offset = int(lexer.peek_token().value)
             lexer.eat_next_token()
             lexer.eat_next_token() # ]
 

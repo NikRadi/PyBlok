@@ -11,7 +11,6 @@ from blok.astnodes import (
     LoopControl,
     LoopControlKind,
     IfStatement,
-    VarAssign,
     VarDecl,
     Literal,
     UnaryOp,
@@ -21,10 +20,14 @@ from blok.astnodes import (
 
 class TypeChecker:
     def __init__(self, ast):
+        self.varident_to_evalkind = {}
         self.funcident_to_evalkind = {}
         self.structident_to_stacksize = {}
+        self.structident_to_varoffset = {}
         self.current_func = None
         self.typecheck_blkprogram(ast)
+        print(self.varident_to_evalkind)
+        print(self.structident_to_varoffset)
 
     def typecheck_blkprogram(self, blkprogram):
         for funcdecl in blkprogram.funcdecls:
@@ -44,6 +47,11 @@ class TypeChecker:
     def typecheck_struct(self, struct):
         ident = struct.ident.value
         self.structident_to_stacksize[ident] = struct.stack_size
+        varoffsets = []
+        for vardecl in struct.vardecls:
+            varoffsets.append(vardecl.ident.value)
+
+        self.structident_to_varoffset[ident] = varoffsets
 
     def typecheck_return_statement(self, return_statement):
         if return_statement.expr != None:
@@ -71,9 +79,6 @@ class TypeChecker:
         for statement in block.statements:
             if isinstance(statement, VarDecl):
                 self.typecheck_vardecl(statement)
-            # elif isinstance(statement, VarAssign):
-            #     self.typecheck_varassign(statement)
-            # TODO: Is it only varassign that is a BinaryOp statement?
             elif isinstance(statement, BinaryOp):
                 self.typecheck_varassign(statement)
             elif isinstance(statement, IfStatement):
@@ -113,43 +118,31 @@ class TypeChecker:
             self.typecheck_block(if_statement.else_block)
 
     def typecheck_varassign(self, varassign):
+        self.typecheck_expr(varassign.lhs)
         self.typecheck_expr(varassign.rhs)
+        if varassign.op.kind != TokenKind.EQUAL:
+            binaryop = BinaryOp()
+            binaryop.lhs = varassign.lhs
+            binaryop.rhs = varassign.rhs
+            binaryop.eval_kind = EvalKind.INT
+            op = varassign.op.kind
+            if   op == TokenKind.PLUS_EQUAL:  op = TokenKind.PLUS
+            elif op == TokenKind.MINUS_EQUAL: op = TokenKind.MINUS
+            elif op == TokenKind.STAR_EQUAL:  op = TokenKind.STAR
+            elif op == TokenKind.SLASH_EQUAL: op = TokenKind.SLASH
+            else: assert False
 
-        # self.typecheck_expr(varassign.expr)
-        # if varassign.op.kind != TokenKind.EQUAL:
-        #     binaryop = BinaryOp()
-        #     binaryop.eval_kind = EvalKind.INT
-        #     binaryop.lhs = Literal()
-        #     binaryop.lhs.token = varassign.ident
-        #     deref_depth = varassign.deref_depth
-        #     while deref_depth > 0:
-        #         unaryop = UnaryOp()
-        #         unaryop.eval_kind = EvalKind.INT
-        #         unaryop.op = Token(TokenKind.LESS_THAN, "", -1)
-        #         unaryop.expr = binaryop.lhs
-
-        #         binaryop.lhs = unaryop
-        #         deref_depth -= 1
-
-        #     binaryop.rhs = varassign.expr
-        #     if varassign.op.kind == TokenKind.PLUS_EQUAL:
-        #         tokenkind = TokenKind.PLUS
-        #     elif varassign.op.kind == TokenKind.MINUS_EQUAL:
-        #         tokenkind = TokenKind.MINUS
-        #     elif varassign.op.kind == TokenKind.STAR_EQUAL:
-        #         tokenkind = TokenKind.STAR
-        #     elif varassign.op.kind == TokenKind.SLASH_EQUAL:
-        #         tokenkind = TokenKind.SLASH
-        #     else: assert False # TODO: Is this case even possible?
-
-        #     binaryop.op = Token(tokenkind, "", -1)
-        #     varassign.op.kind = TokenKind.EQUAL
-        #     varassign.expr = binaryop
+            binaryop.op = Token(op, "", -1)
+            varassign.rhs = binaryop
+            varassign.op.kind = TokenKind.EQUAL
 
     def typecheck_vardecl(self, vardecl):
         if vardecl.kind.kind == TokenKind.IDENT:
             stack_size = self.structident_to_stacksize[vardecl.kind.value]
             vardecl.stack_size = stack_size
+            self.varident_to_evalkind[vardecl.ident.value] = vardecl.kind.value
+        else:
+            self.varident_to_evalkind[vardecl.ident.value] = vardecl.kind.kind
 
         self.current_func.stack_size += vardecl.stack_size
         if vardecl.expr != None:
@@ -170,7 +163,8 @@ class TypeChecker:
         if literal.token.kind == TokenKind.INT_LITERAL:
             literal.eval_kind = EvalKind.INT
         elif literal.token.kind == TokenKind.IDENT:
-            pass
+            # TODO: Fix this temporary solution
+            literal.eval_kind = EvalKind.INT
         else: assert False, f"\n{literal}"
 
     def typecheck_unaryop(self, unaryop):
@@ -186,9 +180,19 @@ class TypeChecker:
         else: assert False, f"\n{unaryop}"
 
     def typecheck_binaryop(self, binaryop):
+        op_kind = binaryop.op.kind
+        if op_kind == TokenKind.DOT:
+            binaryop.eval_kind = EvalKind.INT
+            var_name = binaryop.lhs.token.value
+            struct_ident = self.varident_to_evalkind[var_name]
+            var_offsets = self.structident_to_varoffset[struct_ident]
+            for i, ident in enumerate(var_offsets):
+                if binaryop.rhs.token.value == ident:
+                    binaryop.rhs.offset  = i
+                    return
+
         self.typecheck_expr(binaryop.lhs)
         self.typecheck_expr(binaryop.rhs)
-        op_kind = binaryop.op.kind
         if op_kind == TokenKind.PLUS or \
            op_kind == TokenKind.MINUS or \
            op_kind == TokenKind.STAR:

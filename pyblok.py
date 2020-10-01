@@ -16,7 +16,6 @@ def main():
     blkfile.close()
     lexer = Lexer(text)
     ast = parse_blkprogram(lexer)
-    print(ast)
     TypeChecker(ast)
     print(ast)
     if len(errors) > 0:
@@ -27,8 +26,8 @@ def main():
 
         return
 
-    #bytecode = CodeGenByteCode(ast).gen_bytecode()
-    #interp_bytecode(bytecode)
+    bytecode = CodeGenByteCode(ast).gen_bytecode()
+    interp_bytecode(bytecode)
 
 
 if __name__ == "__main__":
