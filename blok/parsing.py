@@ -185,9 +185,8 @@ def parse_loopcontrol(lexer, parent):
     loopcontrol.parent = parent
     if lexer.peek_token().kind == TokenKind.BREAK:
         loopcontrol.kind = LoopControlKind.BREAK
-    elif lexer.peek_token().kind == TokenKind.CONTINUE:
+    else:
         loopcontrol.kind = LoopControlKind.CONTINUE
-    else: assert False # TODO: Is this even possible?
 
     lexer.eat_next_token()
     lexer.eat_next_token() # ;
@@ -213,6 +212,7 @@ def parse_if_statement(lexer, parent):
         if lexer.peek_token().kind == TokenKind.CURLY_BRAC_LEFT:
             # TODO: if_statement.block and if_statement.else_block are not the same block
             #       but the block will be assigned the same parent
+            #       this might cause a problem with loopcontrol
             if_statement.else_block = parse_block(lexer, if_statement)
         elif lexer.peek_token().kind == TokenKind.IF:
             if_statement.else_block = parse_if_statement(lexer, if_statement)

@@ -67,6 +67,8 @@ class TypeChecker:
             not isinstance(funcdecl.block.statements[-1], ReturnStatement)):
             funcdecl.block.statements.append(ReturnStatement())
 
+        self.current_func = None
+
     def typecheck_block(self, block):
         for statement in block.statements:
             if isinstance(statement, VarDecl):
@@ -128,15 +130,16 @@ class TypeChecker:
 
             binaryop.rhs = varassign.expr
             if varassign.op.kind == TokenKind.PLUS_EQUAL:
-                binaryop.op = Token(TokenKind.PLUS, "", -1)
+                tokenkind = TokenKind.PLUS
             elif varassign.op.kind == TokenKind.MINUS_EQUAL:
-                binaryop.op = Token(TokenKind.MINUS, "", -1)
+                tokenkind = TokenKind.MINUS
             elif varassign.op.kind == TokenKind.STAR_EQUAL:
-                binaryop.op = Token(TokenKind.STAR, "", -1)
+                tokenkind = TokenKind.STAR
             elif varassign.op.kind == TokenKind.SLASH_EQUAL:
-                binaryop.op = Token(TokenKind.SLASH, "", -1)
-            else: assert False
+                tokenkind = TokenKind.SLASH
+            else: assert False # TODO: Is this case even possible?
 
+            binaryop.op = Token(tokenkind, "", -1)
             varassign.op.kind = TokenKind.EQUAL
             varassign.expr = binaryop
 
@@ -204,7 +207,5 @@ class EvalKind(Enum):
     BOOL    = 1
     VOID    = 2
     PTR     = 3
-
-
     def __str__(self):
         return self.name
