@@ -17,6 +17,7 @@ def main():
     lexer = Lexer(text)
     ast = parse_blkprogram(lexer)
     TypeChecker(ast)
+    print(ast)
     if len(errors) > 0:
         print("Could not compile")
         for err in errors:

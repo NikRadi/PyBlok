@@ -13,7 +13,6 @@ from blok.astnodes import (
     LoopControl,
     LoopControlKind,
     IfStatement,
-    VarAssign,
     VarDecl,
     Literal,
     UnaryOp,
@@ -87,9 +86,9 @@ class CodeGenByteCode:
             elif len(code) == 3 and isinstance(code[1], str):
                 self.bytecode[i] = (code[0], self.label_to_idx[code[1]], code[2])
 
-    def add_var(self, ident):
+    def add_var(self, ident, offset=1):
         idx = self.localvar_idx
-        self.localvar_idx += 1
+        self.localvar_idx += offset
         self.localvar_to_idx[ident] = idx
         return idx
 
@@ -105,20 +104,20 @@ class CodeGenByteCode:
         ]
 
         self.gen_bytecode_blkfile()
+        print(f"\n{'-'*10} BEFORE OPTIMIZATION {'-'*10}\n")
         for i, j in enumerate(self.bytecode): print(i, j)
         len_bfr = len(self.bytecode)
+
         self.optimize_bytecode()
+
+        print(f"\n{'-'*10} AFTER OPTIMIZATION {'-'*10}\n")
         for i, j in enumerate(self.bytecode): print(i, j)
-        print()
-        len_aft = len(self.bytecode)
-        print(f"Optimized {len_bfr - len_aft}")
-        print()
+        print(f"\n{'-'*10} OPTIMIZED {len_bfr - len(self.bytecode)} {'-'*10}\n")
+
         self.replace_labels_by_idx()
         return self.bytecode
 
     def optimize_bytecode(self):
-        print("-" * 20)
-        print("-" * 20)
         idx = 0
         while True:
             if idx >= len(self.bytecode):
@@ -142,13 +141,8 @@ class CodeGenByteCode:
                 if code[1] == 0:
                     del self.bytecode[idx]
                     continue
-            else:
-                print(code)
 
             idx += 1
-
-        print("-" * 20)
-        print("-" * 20)
 
     def gen_bytecode_blkfile(self):
         for funcdecl in self.ast.funcdecls:
@@ -188,7 +182,7 @@ class CodeGenByteCode:
         for statement in block.statements:
             if isinstance(statement, VarDecl):
                 self.gen_bytecode_vardecl(statement)
-            elif isinstance(statement, VarAssign):
+            elif isinstance(statement, BinaryOp):
                 self.gen_bytecode_varassign(statement)
             elif isinstance(statement, IfStatement):
                 self.gen_bytecode_if_statement(statement)
@@ -284,34 +278,53 @@ class CodeGenByteCode:
             self.bytecode += [(ByteCode.LABEL, end_label)]
 
     def gen_bytecode_varassign(self, varassign):
-        self.gen_bytecode_expr(varassign.expr)
-        idx = self.localvar_to_idx[varassign.ident.value]
-        self.bytecode += [
-            (ByteCode.LOAD_BASE_POINTER,),
-            (ByteCode.PUSH_CONST, idx),
-            (ByteCode.BINARYOP_ADD,),
-        ]
-
-        if varassign.arr_idx != None:
+        self.gen_bytecode_expr(varassign.rhs)
+        self.bytecode += [(ByteCode.LOAD_BASE_POINTER,)]
+        lhs = varassign.lhs
+        if isinstance(lhs, Literal):
+            local_idx = self.localvar_to_idx[lhs.token.value]
             self.bytecode += [
-                (ByteCode.LOAD_VALUE_AT_IDX,),
-                (ByteCode.PUSH_CONST, varassign.arr_idx),
+                (ByteCode.PUSH_CONST, local_idx),
                 (ByteCode.BINARYOP_ADD,),
             ]
-        elif varassign.deref_depth > 0:
-            deref_depth = varassign.deref_depth
-            while deref_depth > 0:
-                self.bytecode += [(ByteCode.LOAD_VALUE_AT_IDX,)]
-                deref_depth -= 1
 
+            if lhs.offset != None:
+                self.bytecode += [
+                    (ByteCode.LOAD_VALUE_AT_IDX,),
+                    (ByteCode.PUSH_CONST, lhs.offset),
+                    (ByteCode.BINARYOP_ADD,),
+                ]
+        elif isinstance(lhs, UnaryOp):
+            num_derefs = 0
+            while isinstance(lhs, UnaryOp):
+                num_derefs += 1
+                lhs = lhs.expr
+
+            local_idx = self.localvar_to_idx[lhs.token.value]
+            self.bytecode += [
+                (ByteCode.PUSH_CONST, local_idx),
+                (ByteCode.BINARYOP_ADD,),
+            ]
+            self.bytecode += [(ByteCode.LOAD_VALUE_AT_IDX,)] * num_derefs
+        elif isinstance(lhs, BinaryOp):
+            assert lhs.op.kind == TokenKind.DOT
+            print(lhs)
+            local_idx = self.localvar_to_idx[lhs.lhs.token.value]
+            self.bytecode += [
+                (ByteCode.PUSH_CONST, local_idx),
+                (ByteCode.BINARYOP_ADD,),
+                (ByteCode.PUSH_CONST, lhs.rhs.offset),
+                (ByteCode.BINARYOP_ADD,),
+            ]
+        else: assert False, f"\n{varassign}"
         self.bytecode += [(ByteCode.STORE_VALUE_AT_IDX,)]
 
     def gen_bytecode_vardecl(self, vardecl):
-        is_array = vardecl.stack_size > 1
+        is_array = vardecl.stack_size > 1 and vardecl.kind.kind != TokenKind.IDENT
         if is_array:
             self.localvar_idx += vardecl.stack_size - 1
 
-        idx = self.add_var(vardecl.ident.value)
+        idx = self.add_var(vardecl.ident.value, vardecl.stack_size)
         if is_array:
             # TODO: If vardecl is a struct containing an array
             #       then first_elem_idx will point to where
@@ -336,7 +349,6 @@ class CodeGenByteCode:
                 (ByteCode.BINARYOP_ADD,),
                 (ByteCode.STORE_VALUE_AT_IDX,)
             ]
-
 
     def gen_bytecode_expr(self, expr):
         if isinstance(expr, Literal):
@@ -378,9 +390,9 @@ class CodeGenByteCode:
                 (ByteCode.LOAD_VALUE_AT_IDX,)
             ]
 
-            if literal.arr_idx != None:
+            if literal.offset != None:
                 self.bytecode += [
-                    (ByteCode.PUSH_CONST, literal.arr_idx),
+                    (ByteCode.PUSH_CONST, literal.offset),
                     (ByteCode.BINARYOP_ADD,),
                     (ByteCode.LOAD_VALUE_AT_IDX,),
                 ]
@@ -399,6 +411,18 @@ class CodeGenByteCode:
         else: assert False, f"\n{unaryop}"
 
     def gen_bytecode_arith_binaryop(self, binaryop):
+        if binaryop.op.kind == TokenKind.DOT:
+            idx = self.localvar_to_idx[binaryop.lhs.token.value]
+            self.bytecode += [
+                (ByteCode.LOAD_BASE_POINTER,),
+                (ByteCode.PUSH_CONST, idx),
+                (ByteCode.BINARYOP_ADD,),
+                (ByteCode.PUSH_CONST, binaryop.rhs.offset),
+                (ByteCode.BINARYOP_ADD,),
+                (ByteCode.LOAD_VALUE_AT_IDX,)
+            ]
+            return
+
         self.gen_bytecode_expr(binaryop.lhs)
         self.gen_bytecode_expr(binaryop.rhs)
         op_kind = binaryop.op.kind
@@ -406,7 +430,7 @@ class CodeGenByteCode:
         elif op_kind == TokenKind.MINUS: self.bytecode += [(ByteCode.BINARYOP_SUB,)]
         elif op_kind == TokenKind.STAR:  self.bytecode += [(ByteCode.BINARYOP_MUL,)]
         elif op_kind == TokenKind.SLASH: self.bytecode += [(ByteCode.BINARYOP_DIV,)]
-        else: assert False
+        else: assert False, f"\n{binaryop}"
 
     def gen_bytecode_logic_binaryop(self, binaryop):
         self.gen_bytecode_expr(binaryop.lhs)
@@ -427,13 +451,21 @@ class CodeGenByteCode:
         else:
             assert False, f"{binaryop}"
 
-        # NOTE: Label is not added here but by parent
+        # Label is not added here but by parent
         self.bytecode += [(jump_kind,)]
 
     def gen_bytecode_ptr_unaryop(self, unaryop):
+        assert isinstance(unaryop.expr, Literal)
         varidx = self.localvar_to_idx[unaryop.expr.token.value]
         self.bytecode += [
             (ByteCode.LOAD_BASE_POINTER,),
             (ByteCode.PUSH_CONST, varidx),
             (ByteCode.BINARYOP_ADD,)
         ]
+
+        if unaryop.expr.offset != None:
+            self.bytecode += [
+                (ByteCode.LOAD_VALUE_AT_IDX,),
+                (ByteCode.PUSH_CONST, unaryop.expr.offset),
+                (ByteCode.BINARYOP_ADD,)
+            ]
