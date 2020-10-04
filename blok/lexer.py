@@ -38,8 +38,18 @@ class Lexer:
                 self.line += 1
             elif c == " ":
                 self.char_idx += 1
-            else:
-                break
+            else: break
+
+        if self.char_idx + 1 < len(self.text) and \
+           self.text[self.char_idx] == "/" and \
+           self.text[self.char_idx + 1] == "/":
+            self.char_idx += 2
+            while True:
+                if self.char_idx >= len(self.text): break
+                if self.text[self.char_idx] == "\n": break
+                self.char_idx += 1
+
+            self.char_idx += 1
 
         c = self.text[self.char_idx]
         if   c == "+":      self.try_read_pair(TokenKind.PLUS, "=", TokenKind.PLUS_EQUAL)
