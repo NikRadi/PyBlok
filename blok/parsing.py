@@ -38,6 +38,18 @@ def get_precedence(op_kind):
     return -1
 
 
+def expect(lexer, kind):
+    token = lexer.peek_token()
+    if not token.kind == kind:
+        if token.kind == TokenKind.INVALID:
+            report_exit()
+        else:
+            add_err_exit(token.line, f"expected '{kind}' but got '{token.kind}'")
+
+    lexer.eat_next_token()
+    return token
+
+
 def parse_blkprogram(lexer):
     blkprogram = BlkProgram()
     peek = lexer.peek_token()
@@ -103,14 +115,14 @@ def parse_funcdecl(lexer):
     lexer.eat_next_token()
     funcdecl.ident = lexer.peek_token()
     lexer.eat_next_token()
-    lexer.eat_next_token() # (
+    expect(lexer, TokenKind.ROUND_BRAC_LEFT)
     while lexer.peek_token().kind != TokenKind.ROUND_BRAC_RIGHT:
         if lexer.peek_token().kind == TokenKind.COMMA and len(funcdecl.params) > 0:
             lexer.eat_next_token()
 
         funcdecl.params.append(parse_vardecl(lexer, False, False))
 
-    lexer.eat_next_token() # )
+    expect(lexer, TokenKind.ROUND_BRAC_RIGHT)
     funcdecl.block = parse_block(lexer, funcdecl)
     return funcdecl
 
@@ -118,8 +130,7 @@ def parse_funcdecl(lexer):
 def parse_block(lexer, parent):
     block = Block()
     block.parent = parent
-    assert lexer.peek_token().kind == TokenKind.CURLY_BRAC_LEFT, lexer.peek_token().kind
-    lexer.eat_next_token() # {
+    expect(lexer, TokenKind.CURLY_BRAC_LEFT)
     while lexer.peek_token().kind != TokenKind.CURLY_BRAC_RIGHT:
         peek = lexer.peek_token()
         if peek.kind == TokenKind.IDENT:
@@ -152,22 +163,22 @@ def parse_block(lexer, parent):
         elif peek.kind == TokenKind.BREAK or \
              peek.kind == TokenKind.CONTINUE:
             block.statements.append(parse_loopcontrol(lexer, block))
-        else: assert False, f"\n{lexer.peek_token()}"
+        else: add_err_exit(peek.line, f"invalid statement starting with '{peek.kind}'")
 
-    lexer.eat_next_token() # }
+    expect(lexer, TokenKind.CURLY_BRAC_RIGHT)
     return block
 
 
 def parse_for_loop(lexer):
     for_loop = ForLoop()
-    lexer.eat_next_token() # for
+    expect(lexer, TokenKind.FOR)
     for_loop.var_ident = lexer.peek_token()
     lexer.eat_next_token()
-    lexer.eat_next_token() # =
+    expect(lexer, TokenKind.EQUAL)
     for_loop.start = parse_expr(lexer)
-    lexer.eat_next_token() # ..
+    expect(lexer, TokenKind.TWO_DOT)
     for_loop.stop = parse_expr(lexer)
-    lexer.eat_next_token() # step
+    expect(lexer, TokenKind.STEP)
     for_loop.step = parse_expr(lexer)
     for_loop.block = parse_block(lexer, for_loop)
     return for_loop
@@ -175,7 +186,7 @@ def parse_for_loop(lexer):
 
 def parse_while_loop(lexer):
     while_loop = WhileLoop()
-    lexer.eat_next_token() # while
+    expect(lexer, TokenKind.WHILE)
     while_loop.condition = parse_expr(lexer)
     while_loop.block = parse_block(lexer, while_loop)
     return while_loop
@@ -190,7 +201,7 @@ def parse_loopcontrol(lexer, parent):
         loopcontrol.kind = LoopControlKind.CONTINUE
 
     lexer.eat_next_token()
-    lexer.eat_next_token() # ;
+    expect(lexer, TokenKind.SEMICOLON)
     loopcontrol.parent_loop = parent
     while True:
         if isinstance(loopcontrol.parent_loop, ForLoop) or \
@@ -205,7 +216,7 @@ def parse_loopcontrol(lexer, parent):
 def parse_if_statement(lexer, parent):
     if_statement = IfStatement()
     if_statement.parent = parent
-    lexer.eat_next_token() # if
+    expect(lexer, TokenKind.IF)
     if_statement.condition = parse_expr(lexer)
     if_statement.block = parse_block(lexer, if_statement)
     if lexer.peek_token().kind == TokenKind.ELSE:
@@ -228,7 +239,7 @@ def parse_varassign(lexer):
     varassign.op = lexer.peek_token()
     lexer.eat_next_token()
     varassign.rhs = parse_expr(lexer)
-    lexer.eat_next_token() # ;
+    expect(lexer, TokenKind.SEMICOLON)
     return varassign
 
 
@@ -246,15 +257,14 @@ def parse_vardecl(lexer, has_expr=True, eat_semicolon=True):
         lexer.eat_next_token()
         lexer.eat_next_token() # ]
 
-    vardecl.ident = lexer.peek_token()
-    lexer.eat_next_token()
+    vardecl.ident = expect(lexer, TokenKind.IDENT)
     if lexer.peek_token().kind == TokenKind.SEMICOLON or not has_expr:
         if eat_semicolon:
             lexer.eat_next_token() # ;
 
         return vardecl
 
-    lexer.eat_next_token() # =
+    expect(lexer, TokenKind.EQUAL)
     vardecl.expr = parse_expr(lexer)
     if eat_semicolon:
         lexer.eat_next_token() # ;
@@ -302,7 +312,6 @@ def parse_literal(lexer):
 
         return unaryop
 
-
     if token.kind == TokenKind.ROUND_BRAC_LEFT:
         lexer.eat_next_token() # (
         expr = parse_expr(lexer)
@@ -336,4 +345,4 @@ def parse_literal(lexer):
 
         return literal
 
-    assert False, f"\n{token}"
+    add_err_exit(token.line, f"unexpected literal '{token.kind}'")

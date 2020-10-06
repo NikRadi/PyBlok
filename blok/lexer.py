@@ -75,7 +75,7 @@ class Lexer:
         elif c.isalpha():   self.read_ident()
         else:
             self.err(f"invalid character '{c}'")
-            self.add_token(TokenKind.INVALID)
+            self.add_token(TokenKind.INVALID, c)
 
         self.char_idx += 1
 
