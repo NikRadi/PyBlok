@@ -1,4 +1,6 @@
+import sys
 import blok.astnodes
+from blok.error import add_err
 from blok.token import Token, TokenKind
 from blok.astnodes import (
     BlkProgram,
@@ -38,15 +40,17 @@ def get_precedence(op_kind):
 
 def parse_blkprogram(lexer):
     blkprogram = BlkProgram()
-    peek = lexer.peek_token().kind
-    while peek != TokenKind.EOF:
-        if peek == TokenKind.STRUCT:
+    peek = lexer.peek_token()
+    while peek.kind != TokenKind.EOF:
+        if peek.kind == TokenKind.STRUCT:
             blkprogram.structs.append(parse_struct(lexer))
-        elif peek == TokenKind.VOID or peek == TokenKind.INT:
+        elif peek.kind == TokenKind.VOID or peek == TokenKind.INT:
             blkprogram.funcdecls.append(parse_funcdecl(lexer))
-        else: assert False
+        else:
+            add_err(peek.line, f"invalid statement in global scope '{peek.value}'")
+            return None
 
-        peek = lexer.peek_token().kind
+        peek = lexer.peek_token()
 
     return blkprogram
 
@@ -104,12 +108,6 @@ def parse_funcdecl(lexer):
             lexer.eat_next_token()
 
         funcdecl.params.append(parse_vardecl(lexer, False, False))
-        # vardecl = VarDecl()
-        # vardecl.kind = lexer.peek_token()
-        # lexer.eat_next_token()
-        # vardecl.ident = lexer.peek_token()
-        # lexer.eat_next_token()
-        # funcdecl.params.append(vardecl)
 
     lexer.eat_next_token() # )
     funcdecl.block = parse_block(lexer, funcdecl)

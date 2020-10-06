@@ -2,6 +2,9 @@
 
 errors = []
 
+def add_err(line, msg):
+    errors.append(CompileError(None, line, msg))
+
 class CompileError:
     def __init__(self, filename, line, msg):
         self.filename = filename

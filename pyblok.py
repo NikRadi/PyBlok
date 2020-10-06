@@ -16,8 +16,15 @@ def main():
     blkfile.close()
     lexer = Lexer(text)
     ast = parse_blkprogram(lexer)
+    if len(errors) > 0:
+        print("Could not compile")
+        for err in errors:
+            err.filename = filename
+            print(err)
+
+        return
+
     TypeChecker(ast)
-    print(ast)
     if len(errors) > 0:
         print("Could not compile")
         for err in errors:
