@@ -1,6 +1,6 @@
 import sys
 import blok.astnodes
-from blok.error import add_err
+from blok.error import add_err_exit, report_exit
 from blok.token import Token, TokenKind
 from blok.astnodes import (
     BlkProgram,
@@ -46,9 +46,10 @@ def parse_blkprogram(lexer):
             blkprogram.structs.append(parse_struct(lexer))
         elif peek.kind == TokenKind.VOID or peek == TokenKind.INT:
             blkprogram.funcdecls.append(parse_funcdecl(lexer))
+        elif peek.kind == TokenKind.INVALID:
+            report_exit()
         else:
-            add_err(peek.line, f"invalid statement in global scope '{peek.value}'")
-            return None
+            add_err_exit(peek.line, f"invalid statement in global scope '{peek.value}'")
 
         peek = lexer.peek_token()
 
