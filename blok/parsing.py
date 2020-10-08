@@ -272,6 +272,7 @@ def parse_vardecl(lexer, has_expr=True, eat_semicolon=True):
     return vardecl
 
 
+# TODO: expression '1*2-3+4' results in -5 and not 3
 def parse_expr(lexer, min_precedence=0):
     lhs = parse_literal(lexer)
     while True:
